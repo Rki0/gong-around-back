@@ -1,8 +1,9 @@
-import mongoose, { ObjectId, Schema } from "mongoose";
+import mongoose, { Schema, Types } from "mongoose";
 
 interface Location {
-  feed: ObjectId;
-  name: string;
+  feed: Types.ObjectId;
+  writer: Types.ObjectId;
+  address: string;
   lat: number;
   lng: number;
 }
@@ -10,11 +11,16 @@ interface Location {
 const locationSchema = new Schema<Location>(
   {
     feed: {
-      type: mongoose.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       required: true,
       ref: "Feed",
     },
-    name: {
+    writer: {
+      type: Schema.Types.ObjectId,
+      required: true,
+      ref: "User",
+    },
+    address: {
       type: String,
       required: true,
     },

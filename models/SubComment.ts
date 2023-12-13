@@ -1,22 +1,22 @@
-import mongoose, { ObjectId, Schema } from "mongoose";
+import mongoose, { Schema, Types } from "mongoose";
 
 interface SubComment {
-  writer: ObjectId;
-  feed: ObjectId;
+  writer: Types.ObjectId;
+  feed: Types.ObjectId;
   content: string;
   like: number;
-  referenceComment: ObjectId;
+  parentComment: Types.ObjectId;
 }
 
 const subCommentSchema = new Schema<SubComment>(
   {
     writer: {
-      type: mongoose.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       required: true,
       ref: "User",
     },
     feed: {
-      type: mongoose.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       required: true,
       ref: "Feed",
     },
@@ -28,8 +28,8 @@ const subCommentSchema = new Schema<SubComment>(
       type: Number,
       default: 0,
     },
-    referenceComment: {
-      type: mongoose.Types.ObjectId,
+    parentComment: {
+      type: Schema.Types.ObjectId,
       required: true,
       ref: "Commment",
     },

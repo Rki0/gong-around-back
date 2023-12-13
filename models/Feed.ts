@@ -1,17 +1,17 @@
-import mongoose, { Schema, ObjectId } from "mongoose";
+import mongoose, { Schema, Types } from "mongoose";
 
 interface Feed {
   title: string;
   travelDate: string;
   airportName: string;
-  location: ObjectId;
-  writer: ObjectId;
-  content: string;
+  location: Types.ObjectId;
+  writer: Types.ObjectId;
+  description: string;
   like: number;
   view: number;
-  comments: ObjectId[];
-  subComments: ObjectId[];
-  images: ObjectId[];
+  comments: Types.ObjectId[];
+  subComments: Types.ObjectId[];
+  images: Types.ObjectId[];
 }
 
 const feedSchema = new Schema<Feed>(
@@ -27,16 +27,16 @@ const feedSchema = new Schema<Feed>(
       type: String,
     },
     location: {
-      type: mongoose.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       required: true,
       ref: "Location",
     },
     writer: {
-      type: mongoose.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       required: true,
       ref: "User",
     },
-    content: {
+    description: {
       type: String,
       required: true,
     },
@@ -50,22 +50,19 @@ const feedSchema = new Schema<Feed>(
     },
     comments: [
       {
-        type: mongoose.Types.ObjectId,
-        required: true,
+        type: Schema.Types.ObjectId,
         ref: "Comment",
       },
     ],
     subComments: [
       {
-        type: mongoose.Types.ObjectId,
-        required: true,
+        type: Schema.Types.ObjectId,
         ref: "SubComment",
       },
     ],
     images: [
       {
-        type: mongoose.Types.ObjectId,
-        required: true,
+        type: Schema.Types.ObjectId,
         ref: "Image",
       },
     ],

@@ -1,13 +1,16 @@
-import mongoose, { Schema, ObjectId } from "mongoose";
+// reference
+// https://mongoosejs.com/docs/typescript.html
+
+import mongoose, { Schema, Types } from "mongoose";
 
 interface User {
   nickname: string;
   email: string;
   password: string;
-  writedFeeds: ObjectId[];
-  writedComments: ObjectId[];
-  writedSubComments: ObjectId[];
-  likedFeeds: ObjectId[];
+  writedFeeds: Types.ObjectId[];
+  writedComments: Types.ObjectId[];
+  writedSubComments: Types.ObjectId[];
+  likedFeeds: Types.ObjectId[];
 }
 
 const userSchema = new Schema<User>(
@@ -29,28 +32,28 @@ const userSchema = new Schema<User>(
     },
     writedFeeds: [
       {
-        type: mongoose.Types.ObjectId,
+        type: Schema.Types.ObjectId,
         required: true,
         ref: "Feed",
       },
     ],
     writedComments: [
       {
-        type: mongoose.Types.ObjectId,
+        type: Schema.Types.ObjectId,
         required: true,
         ref: "Comment",
       },
     ],
     writedSubComments: [
       {
-        type: mongoose.Types.ObjectId,
+        type: Schema.Types.ObjectId,
         required: true,
         ref: "SubComment",
       },
     ],
     likedFeeds: [
       {
-        type: mongoose.Types.ObjectId,
+        type: Schema.Types.ObjectId,
         required: true,
         ref: "Feed",
       },

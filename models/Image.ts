@@ -1,39 +1,29 @@
-import mongoose, { ObjectId, Schema } from "mongoose";
+import mongoose, { Schema, Types } from "mongoose";
 
 interface Image {
-  writer: ObjectId;
-  feed: ObjectId;
-  src: string;
+  writer: Types.ObjectId;
+  feed: Types.ObjectId;
   path: string;
   name: string;
-  ext: string;
 }
 
 const imageSchema = new Schema<Image>(
   {
     writer: {
-      type: mongoose.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       required: true,
       ref: "User",
     },
     feed: {
-      type: mongoose.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       required: true,
       ref: "Feed",
-    },
-    src: {
-      type: String,
-      required: true,
     },
     path: {
       type: String,
       required: true,
     },
     name: {
-      type: String,
-      required: true,
-    },
-    ext: {
       type: String,
       required: true,
     },
