@@ -10,6 +10,7 @@ import fs from "fs";
 import https from "https";
 
 import AuthRouter from "./routes/authRouter";
+import FeedRouter from "./routes/feedRouter";
 
 dotenv.config();
 const app = express();
@@ -44,3 +45,4 @@ mongoose
   });
 
 app.use("/api/auth", AuthRouter);
+app.use("/api/feed", FeedRouter);
