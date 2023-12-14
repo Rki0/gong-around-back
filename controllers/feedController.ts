@@ -9,6 +9,20 @@ class FeedController {
     this.feedService = new FeedService();
   }
 
+  pagination = async (req: Request, res: Response) => {
+    const page = parseInt(req.query.page as string, 10);
+    const keyword = req.query.keyword as string;
+
+    try {
+      const pageData = await this.feedService.pagination(page, keyword);
+
+      return res.status(200).json(pageData);
+    } catch (err) {
+      console.log(err);
+      return res.status(500).json({ message: err.message });
+    }
+  };
+
   createFeed = async (req: Request, res: Response) => {
     const userId = req.userId;
 

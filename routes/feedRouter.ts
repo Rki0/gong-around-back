@@ -7,6 +7,7 @@ import fileMiddleware from "../middlewares/fileMiddleware";
 const router = Router();
 const feedController = new FeedController();
 
+router.get("/pagination", feedController.pagination);
 router.post(
   "/",
   authMiddleware,

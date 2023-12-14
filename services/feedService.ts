@@ -24,6 +24,100 @@ interface FeedData {
 }
 
 class FeedService {
+  pagination = async (page: number, keyword: string | undefined) => {
+    const FEEDS_PER_PAGE = 10;
+    const PAGINATION_AT_ONCE = 10;
+
+    let numberOfFeeds;
+
+    try {
+      if (!keyword) {
+        // reference
+        // https://mongoosejs.com/docs/api/model.html#Model.estimatedDocumentCount()
+        numberOfFeeds = await Feed.estimatedDocumentCount();
+      } else {
+        // reference
+        // https://stackoverflow.com/questions/65160433/mongodb-mongoose-whats-the-best-way-to-count-a-lot-of-documents-with-a-filter
+        // https://stackoverflow.com/questions/73833749/in-mongodb-how-do-we-apply-filter-criteria-on-a-subdocument
+        numberOfFeeds = await Feed.countDocuments({
+          title: { $regex: keyword, $options: "i" },
+        });
+      }
+    } catch (err) {
+      console.log(err);
+      throw new Error("게시물 개수 파악 실패");
+    }
+
+    const totalPageNum = Math.ceil(numberOfFeeds / FEEDS_PER_PAGE);
+
+    const paginationStartNum =
+      Math.floor(page / PAGINATION_AT_ONCE) * PAGINATION_AT_ONCE + 1;
+    const paginationEndNum =
+      Math.ceil(page / PAGINATION_AT_ONCE) * PAGINATION_AT_ONCE >= totalPageNum
+        ? totalPageNum
+        : Math.ceil(page / PAGINATION_AT_ONCE) * PAGINATION_AT_ONCE;
+
+    let currentPageFeeds;
+
+    // reference
+    // https://www.mongodb.com/docs/v7.0/reference/operator/aggregation/project/
+    // https://www.mongodb.com/docs/manual/reference/operator/query/regex/
+    // https://www.mongodb.com/docs/v7.0/reference/operator/aggregation/match/
+    try {
+      if (!keyword) {
+        currentPageFeeds = await Feed.aggregate([
+          {
+            $project: {
+              title: true,
+              description: true,
+              createdAt: true,
+              like: true,
+              view: true,
+              commentsCount: { $size: "$comments" },
+              subCommentsCount: { $size: "$subComments" },
+            },
+          },
+        ])
+          .skip((page - 1) * FEEDS_PER_PAGE) // skip data which aren't related with current page
+          .limit(FEEDS_PER_PAGE); // control number of the data
+      } else {
+        currentPageFeeds = await Feed.aggregate([
+          {
+            $match: {
+              title: { $regex: keyword, $options: "i" },
+            },
+          },
+          {
+            $project: {
+              title: true,
+              description: true,
+              createdAt: true,
+              like: true,
+              view: true,
+              commentsCount: { $size: "$comments" },
+              subCommentsCount: { $size: "$subComments" },
+            },
+          },
+        ])
+          .skip((page - 1) * FEEDS_PER_PAGE)
+          .limit(FEEDS_PER_PAGE);
+      }
+    } catch (err) {
+      console.log(err);
+      throw new Error("게시물 추출 실패");
+    }
+
+    const hasMore = totalPageNum !== page;
+
+    return {
+      currentPageFeeds,
+      totalPageNum,
+      paginationStartNum,
+      paginationEndNum,
+      hasMore,
+    };
+  };
+
   createFeed = async (userId: string, feedData: FeedData) => {
     let existingUser;
 
@@ -81,6 +175,7 @@ class FeedService {
     try {
       session.startTransaction();
 
+      // SUGGEST: how about "insertMany"?
       await Promise.all(
         createdImages.map(async (createdImage) => {
           await createdImage.save({ session });
