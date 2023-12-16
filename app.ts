@@ -12,6 +12,8 @@ import https from "https";
 import AuthRouter from "./routes/authRouter";
 import FeedRouter from "./routes/feedRouter";
 
+import viewCountScheduler from "./schedulers/viewCountScheduler";
+
 dotenv.config();
 const app = express();
 
@@ -31,7 +33,11 @@ app.use(
   })
 );
 
-https.createServer(options, app).listen(PORT);
+app.listen(PORT, () => {
+  viewCountScheduler();
+});
+
+// https.createServer(options, app).listen(PORT);
 
 mongoose
   .connect(
