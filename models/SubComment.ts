@@ -3,7 +3,7 @@ import mongoose, { Schema, Types } from "mongoose";
 interface SubComment {
   writer: Types.ObjectId;
   feed: Types.ObjectId;
-  content: string;
+  description: string;
   like: number;
   parentComment: Types.ObjectId;
 }
@@ -20,7 +20,7 @@ const subCommentSchema = new Schema<SubComment>(
       required: true,
       ref: "Feed",
     },
-    content: {
+    description: {
       type: String,
       required: true,
     },
