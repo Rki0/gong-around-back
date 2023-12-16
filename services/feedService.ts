@@ -5,6 +5,7 @@ import Feed from "../models/Feed";
 import User from "../models/User";
 import Location from "../models/Location";
 import Image from "../models/Image";
+import connectRedis from "../utils/redis";
 
 interface FeedLocation {
   address: string;
@@ -219,7 +220,85 @@ class FeedService {
 
     await session.endSession();
 
-    // TODO: update top 10 liked feeds which around each airport in redis(no need )
+    // TODO: update top 10 liked, 10 viewed feeds which around each airport in redis
+  };
+
+  detailFeed = async (feedId: string, clientIP: string) => {
+    let feed;
+
+    // FIXME: 빈 배열인 경우 populate를 걸면 에러가 뜨는 듯함(comments, subComments)
+    // TODO: wrtier field should contain profile img
+    try {
+      // reference : how to select specific field with populate
+      // https://mongoosejs.com/docs/populate.html#field-selection
+      feed = await Feed.findById(feedId)
+        .populate("location", "address lat lng")
+        .populate("writer", "_id nickname")
+        .populate("images", "path");
+      // .populate("comments")
+      // .populate("subComments");
+    } catch (err) {
+      console.log(err);
+      throw new Error("게시물 탐색 실패");
+    }
+
+    // reference : how to implement increment of view count
+    // https://dont-think-about-too-much.github.io/2021/06/28/0writeback/
+    // https://velog.io/@bagt/Spring-Scheduler%EB%A1%9C-%EC%A1%B0%ED%9A%8C%EC%88%98-%EB%A1%9C%EC%A7%81-%EC%BA%90%EC%8B%B1-%EA%B5%AC%ED%98%84%ED%95%98%EA%B8%B0
+    const redisClient = await connectRedis();
+
+    try {
+      // expire condition : Date.now() of req >= (Date.now() when caching data + 24hour)
+      await redisClient.zRemRangeByScore(feedId, -Infinity, Date.now());
+    } catch (err) {
+      await redisClient.disconnect();
+      throw new Error("조회수 어뷰징 차단용 IP 캐싱 만료 처리 실패");
+    }
+
+    let isAbusingCached: boolean;
+
+    try {
+      isAbusingCached = (await redisClient.zScan(feedId, 0)).members.some(
+        (member) => member.value === clientIP
+      );
+    } catch (err) {
+      await redisClient.disconnect();
+      throw new Error("조회수 어뷰징 차단용 IP 캐싱 탐색 실패");
+    }
+
+    if (isAbusingCached) {
+      await redisClient.disconnect();
+      return feed;
+    }
+
+    // reference : how to implement expiration of value using Sorted-Set in redis
+    // https://stackoverflow.com/questions/7577923/redis-possible-to-expire-an-element-in-an-array-or-sorted-set
+    // https://copyprogramming.com/howto/redis-expire-set-element#google_vignette
+    // https://groups.google.com/g/redis-db/c/-GSVYNoPfYI
+    const expirationTime = Date.now() + 24 * 60 * 60 * 1000; // 24 hour
+
+    try {
+      // reference : how to use "zAdd"
+      // https://stackoverflow.com/questions/70122516/redis-add-to-sorted-set-using-typescript
+      await redisClient.zAdd(feedId, {
+        score: expirationTime,
+        value: clientIP,
+      });
+    } catch (err) {
+      await redisClient.disconnect();
+      throw new Error("조회수 어뷰징 차단용 IP 캐싱 실패");
+    }
+
+    try {
+      await redisClient.hIncrBy("viewCounts", feedId, 1);
+    } catch (err) {
+      await redisClient.disconnect();
+      throw new Error("조회수 캐싱 실패");
+    }
+
+    await redisClient.disconnect();
+
+    return feed;
   };
 }
 

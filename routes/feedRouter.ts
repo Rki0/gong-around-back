@@ -8,6 +8,7 @@ const router = Router();
 const feedController = new FeedController();
 
 router.get("/pagination", feedController.pagination);
+router.get("/:feedId", feedController.detailFeed);
 router.post(
   "/",
   authMiddleware,
