@@ -251,7 +251,7 @@ class FeedService {
             { path: "writer", select: "_id nickname" },
             {
               path: "subComments",
-              select: "-feed -parentComment",
+              select: "-feed",
               options: {
                 sort: { createdAt: "descending" },
               },
