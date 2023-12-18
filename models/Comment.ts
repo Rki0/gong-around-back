@@ -31,7 +31,7 @@ const commentSchema = new Schema<Comment>(
     subComments: [
       {
         type: Schema.Types.ObjectId,
-        ref: "SubCommment",
+        ref: "SubComment",
       },
     ],
   },
