@@ -231,12 +231,34 @@ class FeedService {
     try {
       // reference : how to select specific field with populate
       // https://mongoosejs.com/docs/populate.html#field-selection
+      // https://mongoosejs.com/docs/populate.html#populating-multiple-paths
       feed = await Feed.findById(feedId)
         .populate("location", "address lat lng")
         .populate("writer", "_id nickname")
-        .populate("images", "path");
-      // .populate("comments")
-      // .populate("subComments");
+        .populate("images", "path")
+        .populate({
+          path: "comments",
+          select: "-feed",
+          options: {
+            // reference : how to sort data
+            // https://mongoosejs.com/docs/api/query.html#Query.prototype.sort()
+            sort: { createdAt: "descending" },
+          },
+          // reference : how to populate multiple depths document
+          // https://mongoosejs.com/docs/populate.html#deep-populate
+          // https://stackoverflow.com/questions/51724786/how-to-populate-in-3-collection-in-mongodb-with-mongoose
+          populate: [
+            { path: "writer", select: "_id nickname" },
+            {
+              path: "subComments",
+              select: "-feed -parentComment",
+              options: {
+                sort: { createdAt: "descending" },
+              },
+              populate: { path: "writer", select: "_id nickname" },
+            },
+          ],
+        });
     } catch (err) {
       console.log(err);
       throw new Error("게시물 탐색 실패");
