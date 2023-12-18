@@ -11,6 +11,7 @@ import https from "https";
 
 import AuthRouter from "./routes/authRouter";
 import FeedRouter from "./routes/feedRouter";
+import CommentRouter from "./routes/commentRouter";
 
 import viewCountScheduler from "./schedulers/viewCountScheduler";
 
@@ -52,3 +53,4 @@ mongoose
 
 app.use("/api/auth", AuthRouter);
 app.use("/api/feed", FeedRouter);
+app.use("/api/comment", CommentRouter);
