@@ -7,5 +7,10 @@ const router = Router();
 const subCommentController = new SubCommentController();
 
 router.post("/:feedId", authMiddleware, subCommentController.createSubComment);
+router.delete(
+  "/:feedId/:commentId",
+  authMiddleware,
+  subCommentController.deleteSubComment
+);
 
 export default router;

@@ -10,6 +10,10 @@ interface SubCommentData {
   parentCommentId: string;
 }
 
+interface DeleteSubCommentData {
+  _id: string;
+}
+
 class SubCommentService {
   createSubComment = async (
     feedId: string,
@@ -81,6 +85,97 @@ class SubCommentService {
       await session.abortTransaction();
       await session.endSession();
       throw new Error("답글 등록 세션 실패");
+    }
+
+    await session.endSession();
+  };
+
+  deleteSubComment = async (
+    feedId: string,
+    commentId: string,
+    userId: string,
+    subCommentData: DeleteSubCommentData
+  ) => {
+    let existingUser;
+
+    try {
+      existingUser = await User.findById(userId);
+    } catch (err) {
+      throw new Error("유저 정보를 찾을 수 없습니다.");
+    }
+
+    if (!existingUser) {
+      throw new Error("존재하지 않는 유저입니다.");
+    }
+
+    let existingFeed;
+
+    try {
+      existingFeed = await Feed.findById(feedId);
+    } catch (err) {
+      throw new Error("게시물 정보를 찾을 수 없습니다.");
+    }
+
+    if (!existingFeed) {
+      throw new Error("존재하지 않는 게시물입니다.");
+    }
+
+    let existingComment;
+
+    try {
+      existingComment = await Comment.findById(commentId);
+    } catch (err) {
+      throw new Error("댓글 정보를 찾을 수 없습니다.");
+    }
+
+    if (!existingComment) {
+      throw new Error("존재하지 않는 댓글입니다.");
+    }
+
+    let existingSubComment;
+
+    try {
+      existingSubComment = await SubComment.findById(subCommentData._id);
+    } catch (err) {
+      throw new Error("답글 정보를 찾을 수 없습니다.");
+    }
+
+    if (!existingSubComment) {
+      throw new Error("존재하지 않는 답글입니다.");
+    }
+
+    const session = await mongoose.startSession();
+
+    try {
+      session.startTransaction();
+
+      // reference : how to delete data in mongoDB with transaction
+      // https://stackoverflow.com/questions/65640501/how-to-use-deletemany-in-transaction-of-mongoose
+      await existingSubComment
+        .deleteOne({ _id: subCommentData._id })
+        .session(session);
+
+      existingUser.writedSubComments = existingUser.writedSubComments.filter(
+        (data) => data._id.toString() !== subCommentData._id
+      );
+      await existingUser.save({ session });
+
+      existingFeed.subComments = existingFeed.subComments.filter(
+        (data) => data._id.toString() !== subCommentData._id
+      );
+      await existingFeed.save({ session });
+
+      existingComment.subComments = existingComment.subComments.filter(
+        (data) => data._id.toString() !== subCommentData._id
+      );
+      await existingComment.save({ session });
+
+      await session.commitTransaction();
+    } catch (err) {
+      console.log(err);
+      await session.abortTransaction();
+      await session.endSession();
+      throw new Error("답글 삭제 세션 실패");
     }
 
     await session.endSession();
