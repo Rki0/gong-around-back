@@ -83,9 +83,9 @@ class SubCommentService {
 
       // reference : how to delete data in mongoDB with transaction
       // https://stackoverflow.com/questions/65640501/how-to-use-deletemany-in-transaction-of-mongoose
-      await existingSubComment
-        .deleteOne({ _id: subCommentData._id })
-        .session(session);
+      await SubComment.findByIdAndDelete(existingSubComment._id).session(
+        session
+      );
 
       existingUser.writedSubComments = existingUser.writedSubComments.filter(
         (data) => data._id.toString() !== subCommentData._id
