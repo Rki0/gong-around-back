@@ -2,10 +2,10 @@ import mongoose from "mongoose";
 import { DeleteObjectCommand, S3Client } from "@aws-sdk/client-s3";
 
 import Feed from "../models/Feed";
-import User from "../models/User";
 import Location from "../models/Location";
 import Image from "../models/Image";
 import connectRedis from "../utils/redis";
+import UserDB from "../common/userDB";
 
 interface FeedLocation {
   address: string;
@@ -120,17 +120,7 @@ class FeedService {
   };
 
   createFeed = async (userId: string, feedData: FeedData) => {
-    let existingUser;
-
-    try {
-      existingUser = await User.findById(userId);
-    } catch (err) {
-      throw new Error("유저 정보를 찾을 수 없습니다.");
-    }
-
-    if (!existingUser) {
-      throw new Error("존재하지 않는 유저입니다.");
-    }
+    const existingUser = await UserDB.getById(userId);
 
     // reference
     // https://mongoosejs.com/docs/populate.html

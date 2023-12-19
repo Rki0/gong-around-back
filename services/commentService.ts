@@ -1,8 +1,8 @@
 import mongoose from "mongoose";
 
 import Comment from "../models/Comment";
-import Feed from "../models/Feed";
-import User from "../models/User";
+import UserDB from "../common/userDB";
+import FeedDB from "../common/feedDB";
 
 interface CommentData {
   description: string;
@@ -14,29 +14,8 @@ class CommentService {
     userId: string,
     commentData: CommentData
   ) => {
-    let existingUser;
-
-    try {
-      existingUser = await User.findById(userId);
-    } catch (err) {
-      throw new Error("유저 정보를 찾을 수 없습니다.");
-    }
-
-    if (!existingUser) {
-      throw new Error("존재하지 않는 유저입니다.");
-    }
-
-    let existingFeed;
-
-    try {
-      existingFeed = await Feed.findById(feedId);
-    } catch (err) {
-      throw new Error("게시물 정보를 찾을 수 없습니다.");
-    }
-
-    if (!existingFeed) {
-      throw new Error("존재하지 않는 게시물입니다.");
-    }
+    const existingUser = await UserDB.getById(userId);
+    const existingFeed = await FeedDB.getById(feedId);
 
     const createdComment = new Comment({
       description: commentData.description,

@@ -1,9 +1,10 @@
 import mongoose from "mongoose";
 
-import Comment from "../models/Comment";
-import Feed from "../models/Feed";
-import User from "../models/User";
 import SubComment from "../models/SubComment";
+import UserDB from "../common/userDB";
+import FeedDB from "../common/feedDB";
+import CommentDB from "../common/commentDB";
+import SubCommentDB from "../common/subCommentDB";
 
 interface SubCommentData {
   description: string;
@@ -25,41 +26,9 @@ class SubCommentService {
     userId: string,
     subCommentData: SubCommentData
   ) => {
-    let existingUser;
-
-    try {
-      existingUser = await User.findById(userId);
-    } catch (err) {
-      throw new Error("유저 정보를 찾을 수 없습니다.");
-    }
-
-    if (!existingUser) {
-      throw new Error("존재하지 않는 유저입니다.");
-    }
-
-    let existingFeed;
-
-    try {
-      existingFeed = await Feed.findById(feedId);
-    } catch (err) {
-      throw new Error("게시물 정보를 찾을 수 없습니다.");
-    }
-
-    if (!existingFeed) {
-      throw new Error("존재하지 않는 게시물입니다.");
-    }
-
-    let existingComment;
-
-    try {
-      existingComment = await Comment.findById(commentId);
-    } catch (err) {
-      throw new Error("댓글 정보를 찾을 수 없습니다.");
-    }
-
-    if (!existingComment) {
-      throw new Error("존재하지 않는 댓글입니다.");
-    }
+    const existingUser = await UserDB.getById(userId);
+    const existingFeed = await FeedDB.getById(feedId);
+    const existingComment = await CommentDB.getById(commentId);
 
     const createdSubComment = new SubComment({
       description: subCommentData.description,
@@ -101,53 +70,10 @@ class SubCommentService {
     userId: string,
     subCommentData: DeleteSubCommentData
   ) => {
-    let existingUser;
-
-    try {
-      existingUser = await User.findById(userId);
-    } catch (err) {
-      throw new Error("유저 정보를 찾을 수 없습니다.");
-    }
-
-    if (!existingUser) {
-      throw new Error("존재하지 않는 유저입니다.");
-    }
-
-    let existingFeed;
-
-    try {
-      existingFeed = await Feed.findById(feedId);
-    } catch (err) {
-      throw new Error("게시물 정보를 찾을 수 없습니다.");
-    }
-
-    if (!existingFeed) {
-      throw new Error("존재하지 않는 게시물입니다.");
-    }
-
-    let existingComment;
-
-    try {
-      existingComment = await Comment.findById(commentId);
-    } catch (err) {
-      throw new Error("댓글 정보를 찾을 수 없습니다.");
-    }
-
-    if (!existingComment) {
-      throw new Error("존재하지 않는 댓글입니다.");
-    }
-
-    let existingSubComment;
-
-    try {
-      existingSubComment = await SubComment.findById(subCommentData._id);
-    } catch (err) {
-      throw new Error("답글 정보를 찾을 수 없습니다.");
-    }
-
-    if (!existingSubComment) {
-      throw new Error("존재하지 않는 답글입니다.");
-    }
+    const existingUser = await UserDB.getById(userId);
+    const existingFeed = await FeedDB.getById(feedId);
+    const existingComment = await CommentDB.getById(commentId);
+    const existingSubComment = await SubCommentDB.getById(subCommentData._id);
 
     // TODO: 답글 작성자인지 아닌지 판단하는 로직 필요
 
@@ -194,58 +120,16 @@ class SubCommentService {
     userId: string,
     subCommentData: UpdateSubCommentData
   ) => {
-    let existingUser;
-
-    try {
-      existingUser = await User.findById(userId);
-    } catch (err) {
-      throw new Error("유저 정보를 찾을 수 없습니다.");
-    }
-
-    if (!existingUser) {
-      throw new Error("존재하지 않는 유저입니다.");
-    }
-
-    let existingFeed;
-
-    try {
-      existingFeed = await Feed.findById(feedId);
-    } catch (err) {
-      throw new Error("게시물 정보를 찾을 수 없습니다.");
-    }
-
-    if (!existingFeed) {
-      throw new Error("존재하지 않는 게시물입니다.");
-    }
-
-    let existingComment;
-
-    try {
-      existingComment = await Comment.findById(commentId);
-    } catch (err) {
-      throw new Error("댓글 정보를 찾을 수 없습니다.");
-    }
-
-    if (!existingComment) {
-      throw new Error("존재하지 않는 댓글입니다.");
-    }
-
-    let existingSubComment;
-
-    try {
-      existingSubComment = await SubComment.findById(subCommentData._id);
-    } catch (err) {
-      throw new Error("답글 정보를 찾을 수 없습니다.");
-    }
-
-    if (!existingSubComment) {
-      throw new Error("존재하지 않는 답글입니다.");
-    }
+    await UserDB.getById(userId);
+    await FeedDB.getById(feedId);
+    await CommentDB.getById(commentId);
+    const existingSubComment = await SubCommentDB.getById(subCommentData._id);
 
     if (existingSubComment.writer._id.toString() !== userId) {
       throw new Error("권한이 없습니다.");
     }
 
+    // SUGGEST: existingSubComment로 하는게 나을 것 같다.
     try {
       await SubComment.findOneAndUpdate(
         { _id: subCommentData._id },
