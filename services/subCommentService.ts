@@ -7,7 +7,6 @@ import SubComment from "../models/SubComment";
 
 interface SubCommentData {
   description: string;
-  parentCommentId: string;
 }
 
 interface DeleteSubCommentData {
@@ -22,6 +21,7 @@ interface UpdateSubCommentData {
 class SubCommentService {
   createSubComment = async (
     feedId: string,
+    commentId: string,
     userId: string,
     subCommentData: SubCommentData
   ) => {
@@ -52,7 +52,7 @@ class SubCommentService {
     let existingComment;
 
     try {
-      existingComment = await Comment.findById(subCommentData.parentCommentId);
+      existingComment = await Comment.findById(commentId);
     } catch (err) {
       throw new Error("댓글 정보를 찾을 수 없습니다.");
     }

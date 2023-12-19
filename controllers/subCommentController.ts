@@ -11,12 +11,14 @@ class SubCommentController {
 
   createSubComment = async (req: Request, res: Response) => {
     const feedId = req.params.feedId;
+    const commentId = req.params.commentId;
     const userId = req.userId as string;
     const subCommentData = req.body;
 
     try {
       await this.subCommentService.createSubComment(
         feedId,
+        commentId,
         userId,
         subCommentData
       );
