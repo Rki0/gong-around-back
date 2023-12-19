@@ -23,6 +23,21 @@ class CommentController {
       return res.status(500).json({ message: err.message });
     }
   };
+
+  deleteComment = async (req: Request, res: Response) => {
+    const feedId = req.params.feedId;
+    const commentId = req.params.commentId;
+    const userId = req.userId as string;
+
+    try {
+      await this.commentService.deleteComment(feedId, commentId, userId);
+
+      return res.status(201).json({ message: "댓글 삭제 성공" });
+    } catch (err) {
+      console.log(err);
+      return res.status(500).json({ message: err.message });
+    }
+  };
 }
 
 export default CommentController;

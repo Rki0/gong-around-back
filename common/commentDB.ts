@@ -16,6 +16,12 @@ class CommentDB {
 
     return existingComment;
   };
+
+  static verifyWriter = (writerId: string, userId: string) => {
+    if (writerId !== userId) {
+      throw new Error("권한이 없습니다.");
+    }
+  };
 }
 
 export default CommentDB;
