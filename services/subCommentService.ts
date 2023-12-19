@@ -126,12 +126,10 @@ class SubCommentService {
     const existingSubComment = await SubCommentDB.getById(subCommentData._id);
     SubCommentDB.verifyWriter(existingSubComment.writer._id.toString(), userId);
 
-    // SUGGEST: existingSubComment로 하는게 나을 것 같다.
     try {
-      await SubComment.findOneAndUpdate(
-        { _id: subCommentData._id },
-        { description: subCommentData.description }
-      );
+      await SubComment.findByIdAndUpdate(existingSubComment._id, {
+        description: subCommentData.description,
+      });
     } catch (err) {
       throw new Error("답글 수정 실패");
     }
