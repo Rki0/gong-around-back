@@ -74,8 +74,7 @@ class SubCommentService {
     const existingFeed = await FeedDB.getById(feedId);
     const existingComment = await CommentDB.getById(commentId);
     const existingSubComment = await SubCommentDB.getById(subCommentData._id);
-
-    // TODO: 답글 작성자인지 아닌지 판단하는 로직 필요
+    SubCommentDB.verifyWriter(existingSubComment.writer._id.toString(), userId);
 
     const session = await mongoose.startSession();
 
@@ -123,11 +122,9 @@ class SubCommentService {
     await UserDB.getById(userId);
     await FeedDB.getById(feedId);
     await CommentDB.getById(commentId);
-    const existingSubComment = await SubCommentDB.getById(subCommentData._id);
 
-    if (existingSubComment.writer._id.toString() !== userId) {
-      throw new Error("권한이 없습니다.");
-    }
+    const existingSubComment = await SubCommentDB.getById(subCommentData._id);
+    SubCommentDB.verifyWriter(existingSubComment.writer._id.toString(), userId);
 
     // SUGGEST: existingSubComment로 하는게 나을 것 같다.
     try {
