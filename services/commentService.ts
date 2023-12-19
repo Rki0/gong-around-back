@@ -88,6 +88,26 @@ class CommentService {
 
     await session.endSession();
   };
+
+  updateComment = async (
+    feedId: string,
+    commentId: string,
+    userId: string,
+    commentData: CommentData
+  ) => {
+    await UserDB.getById(userId);
+    await FeedDB.getById(feedId);
+    const existingComment = await CommentDB.getById(commentId);
+    CommentDB.verifyWriter(existingComment.writer._id.toString(), userId);
+
+    try {
+      await Comment.findByIdAndUpdate(existingComment._id, {
+        description: commentData.description,
+      });
+    } catch (err) {
+      throw new Error("댓글 수정 실패");
+    }
+  };
 }
 
 export default CommentService;

@@ -12,5 +12,10 @@ router.delete(
   authMiddleware,
   commentController.deleteComment
 );
+router.patch(
+  "/:feedId/:commentId",
+  authMiddleware,
+  commentController.updateComment
+);
 
 export default router;
