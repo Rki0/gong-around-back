@@ -48,6 +48,27 @@ class SubCommentController {
       return res.status(500).json({ message: err.message });
     }
   };
+
+  updateSubComment = async (req: Request, res: Response) => {
+    const feedId = req.params.feedId;
+    const commentId = req.params.commentId;
+    const userId = req.userId as string;
+    const subCommentData = req.body;
+
+    try {
+      await this.subCommentService.updateSubComment(
+        feedId,
+        commentId,
+        userId,
+        subCommentData
+      );
+
+      return res.status(201).json({ message: "답글 수정 성공" });
+    } catch (err) {
+      console.log(err);
+      return res.status(500).json({ message: err.message });
+    }
+  };
 }
 
 export default SubCommentController;

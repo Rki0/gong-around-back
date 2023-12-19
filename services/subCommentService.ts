@@ -14,6 +14,11 @@ interface DeleteSubCommentData {
   _id: string;
 }
 
+interface UpdateSubCommentData {
+  _id: string;
+  description: string;
+}
+
 class SubCommentService {
   createSubComment = async (
     feedId: string,
@@ -144,6 +149,8 @@ class SubCommentService {
       throw new Error("존재하지 않는 답글입니다.");
     }
 
+    // TODO: 답글 작성자인지 아닌지 판단하는 로직 필요
+
     const session = await mongoose.startSession();
 
     try {
@@ -179,6 +186,74 @@ class SubCommentService {
     }
 
     await session.endSession();
+  };
+
+  updateSubComment = async (
+    feedId: string,
+    commentId: string,
+    userId: string,
+    subCommentData: UpdateSubCommentData
+  ) => {
+    let existingUser;
+
+    try {
+      existingUser = await User.findById(userId);
+    } catch (err) {
+      throw new Error("유저 정보를 찾을 수 없습니다.");
+    }
+
+    if (!existingUser) {
+      throw new Error("존재하지 않는 유저입니다.");
+    }
+
+    let existingFeed;
+
+    try {
+      existingFeed = await Feed.findById(feedId);
+    } catch (err) {
+      throw new Error("게시물 정보를 찾을 수 없습니다.");
+    }
+
+    if (!existingFeed) {
+      throw new Error("존재하지 않는 게시물입니다.");
+    }
+
+    let existingComment;
+
+    try {
+      existingComment = await Comment.findById(commentId);
+    } catch (err) {
+      throw new Error("댓글 정보를 찾을 수 없습니다.");
+    }
+
+    if (!existingComment) {
+      throw new Error("존재하지 않는 댓글입니다.");
+    }
+
+    let existingSubComment;
+
+    try {
+      existingSubComment = await SubComment.findById(subCommentData._id);
+    } catch (err) {
+      throw new Error("답글 정보를 찾을 수 없습니다.");
+    }
+
+    if (!existingSubComment) {
+      throw new Error("존재하지 않는 답글입니다.");
+    }
+
+    if (existingSubComment.writer._id.toString() !== userId) {
+      throw new Error("권한이 없습니다.");
+    }
+
+    try {
+      await SubComment.findOneAndUpdate(
+        { _id: subCommentData._id },
+        { description: subCommentData.description }
+      );
+    } catch (err) {
+      throw new Error("답글 수정 실패");
+    }
   };
 }
 
