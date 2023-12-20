@@ -13,6 +13,7 @@ import AuthRouter from "./routes/authRouter";
 import FeedRouter from "./routes/feedRouter";
 import CommentRouter from "./routes/commentRouter";
 import SubCommentRouter from "./routes/subCommentRouter";
+import UserRouter from "./routes/userRouter";
 
 import viewCountScheduler from "./schedulers/viewCountScheduler";
 
@@ -56,3 +57,4 @@ app.use("/api/auth", AuthRouter);
 app.use("/api/feed", FeedRouter);
 app.use("/api/comment", CommentRouter);
 app.use("/api/subcomment", SubCommentRouter);
+app.use("/api/user", UserRouter);
