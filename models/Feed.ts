@@ -43,10 +43,12 @@ const feedSchema = new Schema<Feed>(
     like: {
       type: Number,
       default: 0,
+      min: 0,
     },
     view: {
       type: Number,
       default: 0,
+      min: 0,
     },
     comments: [
       {
