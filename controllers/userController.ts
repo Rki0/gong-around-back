@@ -16,6 +16,8 @@ class UserController {
     try {
       await this.userService.withdraw(userId, password);
 
+      res.cookie("refresh_token", null);
+
       return res.status(201).json({ message: "회원 탈퇴 성공" });
     } catch (err) {
       console.log(err);
