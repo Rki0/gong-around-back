@@ -5,6 +5,7 @@ interface Image {
   feed: Types.ObjectId;
   path: string;
   name: string;
+  key: string;
 }
 
 const imageSchema = new Schema<Image>(
@@ -24,6 +25,10 @@ const imageSchema = new Schema<Image>(
       required: true,
     },
     name: {
+      type: String,
+      required: true,
+    },
+    key: {
       type: String,
       required: true,
     },

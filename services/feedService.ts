@@ -141,8 +141,9 @@ class FeedService {
           _id: imagesId[index],
           writer: userId,
           feed: feedId,
-          path: decodeURI(image.location),
           name: image.originalname,
+          path: decodeURI(image.location),
+          key: image.key,
         })
     );
 
