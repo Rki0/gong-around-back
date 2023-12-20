@@ -353,6 +353,45 @@ class FeedService {
 
     await session.endSession();
   };
+
+  dislikeFeed = async (feedId: string, userId: string) => {
+    const existingUser = await (
+      await UserDB.getById(userId)
+    ).populate("likedFeeds");
+    const existingFeed = await FeedDB.getById(feedId);
+
+    let alreadyLiked = false;
+
+    alreadyLiked = existingUser.likedFeeds.some(
+      (likedFeedId) => likedFeedId.feed.toString() === feedId
+    );
+
+    if (!alreadyLiked) {
+      throw new Error("좋아요를 누른 적 없는 게시물입니다.");
+    }
+
+    const session = await mongoose.startSession();
+
+    try {
+      session.startTransaction();
+
+      existingFeed.like--;
+      await existingFeed.save({ session });
+
+      existingUser.likedFeeds = existingUser.likedFeeds.filter(
+        (likedFeed) => likedFeed.feed.toString() !== feedId
+      );
+      await existingUser.save({ session });
+
+      await session.commitTransaction();
+    } catch (err) {
+      await session.abortTransaction();
+      await session.endSession();
+      throw new Error("좋아요 삭제 처리 실패");
+    }
+
+    await session.endSession();
+  };
 }
 
 export default FeedService;

@@ -16,5 +16,6 @@ router.post(
   feedController.createFeed
 );
 router.post("/:feedId/like", authMiddleware, feedController.likeFeed);
+router.post("/:feedId/dislike", authMiddleware, feedController.dislikeFeed);
 
 export default router;

@@ -79,6 +79,19 @@ class FeedController {
       return res.status(500).json({ message: err.message });
     }
   };
+
+  dislikeFeed = async (req: Request, res: Response) => {
+    const feedId = req.params.feedId;
+    const userId = req.userId as string;
+
+    try {
+      await this.feedService.dislikeFeed(feedId, userId);
+
+      return res.status(201).json({ message: "좋아요 삭제 처리 성공" });
+    } catch (err) {
+      return res.status(500).json({ message: err.message });
+    }
+  };
 }
 
 export default FeedController;
