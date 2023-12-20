@@ -15,5 +15,6 @@ router.post(
   fileMiddleware.array("images", 5), // To get some files, filedName must be equal to FormData's file property "name" which appended by client side logic.
   feedController.createFeed
 );
+router.post("/:feedId/like", authMiddleware, feedController.likeFeed);
 
 export default router;

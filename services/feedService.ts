@@ -6,6 +6,7 @@ import Location from "../models/Location";
 import Image from "../models/Image";
 import connectRedis from "../utils/redis";
 import UserDB from "../common/userDB";
+import FeedDB from "../common/feedDB";
 
 interface FeedLocation {
   address: string;
@@ -312,6 +313,45 @@ class FeedService {
     await redisClient.disconnect();
 
     return feed;
+  };
+
+  likeFeed = async (feedId: string, userId: string) => {
+    const existingUser = await (
+      await UserDB.getById(userId)
+    ).populate("likedFeeds");
+    const existingFeed = await FeedDB.getById(feedId);
+
+    let alreadyLiked = false;
+
+    alreadyLiked = existingUser.likedFeeds.some(
+      (likedFeedId) => likedFeedId.feed.toString() === feedId
+    );
+
+    if (alreadyLiked) {
+      throw new Error("이미 좋아요를 누른 게시물입니다.");
+    }
+
+    const session = await mongoose.startSession();
+
+    try {
+      session.startTransaction();
+
+      existingFeed.like++;
+      await existingFeed.save({ session });
+
+      existingUser.likedFeeds.push({
+        feed: new mongoose.Types.ObjectId(feedId),
+      });
+      await existingUser.save({ session });
+
+      await session.commitTransaction();
+    } catch (err) {
+      await session.abortTransaction();
+      await session.endSession();
+      throw new Error("좋아요 처리 실패");
+    }
+
+    await session.endSession();
   };
 }
 

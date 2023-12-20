@@ -66,6 +66,19 @@ class FeedController {
       return res.status(500).json({ message: err.message });
     }
   };
+
+  likeFeed = async (req: Request, res: Response) => {
+    const feedId = req.params.feedId;
+    const userId = req.userId as string;
+
+    try {
+      await this.feedService.likeFeed(feedId, userId);
+
+      return res.status(201).json({ message: "좋아요 처리 성공" });
+    } catch (err) {
+      return res.status(500).json({ message: err.message });
+    }
+  };
 }
 
 export default FeedController;
