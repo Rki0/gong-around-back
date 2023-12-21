@@ -3,10 +3,6 @@
 
 import mongoose, { Schema, Types } from "mongoose";
 
-interface LikedFeed {
-  feed: Types.ObjectId;
-}
-
 interface User {
   nickname: string;
   email: string;
@@ -14,19 +10,8 @@ interface User {
   writedFeeds: Types.ObjectId[];
   writedComments: Types.ObjectId[];
   writedSubComments: Types.ObjectId[];
-  likedFeeds: LikedFeed[];
+  likedFeeds: Types.ObjectId[];
 }
-
-const likedFeedSchema = new Schema<LikedFeed>(
-  {
-    feed: {
-      type: Schema.Types.ObjectId,
-      required: true,
-      ref: "Feed",
-    },
-  },
-  { timestamps: true }
-);
 
 const userSchema = new Schema<User>(
   {
@@ -66,9 +51,13 @@ const userSchema = new Schema<User>(
         ref: "SubComment",
       },
     ],
-    // reference: how to set timestamp on subdocuments
-    // https://mongoosejs.com/docs/timestamps.html - subtitle: Timestamps on Subdocuments
-    likedFeeds: [likedFeedSchema],
+    likedFeeds: [
+      {
+        type: Schema.Types.ObjectId,
+        required: true,
+        ref: "Feed",
+      },
+    ],
   },
   { timestamps: true }
 );
