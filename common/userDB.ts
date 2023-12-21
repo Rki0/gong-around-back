@@ -1,11 +1,13 @@
 import User from "../models/User";
 
 class UserDB {
-  static getById = async (userId: string) => {
+  static getById = async (userId: string, option?: string) => {
     let existingUser;
 
     try {
-      existingUser = await User.findById(userId);
+      // reference : findById with selected field
+      // https://mongoosejs.com/docs/api/model.html#Model.findById()
+      existingUser = await User.findById(userId, option);
     } catch (err) {
       throw new Error("유저 정보를 찾을 수 없습니다.");
     }
