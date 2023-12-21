@@ -69,6 +69,49 @@ class UserService {
 
     await session.endSession();
   };
+
+  likedFeeds = async (userId: string, page: number) => {
+    const existingUser = await UserDB.getById(userId);
+
+    const FEEDS_PER_PAGE = 2;
+    const TOTAL_FEEDS_LENGTH = existingUser.likedFeeds.length;
+    const totalPages = Math.ceil(TOTAL_FEEDS_LENGTH / FEEDS_PER_PAGE);
+    const endIndex = TOTAL_FEEDS_LENGTH - 1 - (page - 1) * FEEDS_PER_PAGE + 1;
+    const calculatedStartIndex = endIndex - FEEDS_PER_PAGE;
+    const startIndex = calculatedStartIndex < 0 ? 0 : calculatedStartIndex;
+    const hasMore = page !== totalPages;
+
+    try {
+      await existingUser.populate({
+        path: "likedFeeds",
+        select: "title description images location",
+        populate: [
+          { path: "location", select: "address" },
+          {
+            path: "images",
+            select: "path",
+            options: { limit: 1 },
+          },
+        ],
+      });
+
+      // Q: why not use skip(), limit()?
+      // A: Because likedFeeds aren't model, I couldn't use those API. So, I implement pagination manually.
+      const slicedLikedFeed = existingUser.likedFeeds
+        .slice(startIndex, endIndex)
+        .reverse();
+
+      const result = {
+        feeds: slicedLikedFeed,
+        hasMore,
+      };
+
+      return result;
+    } catch (err) {
+      console.log(err);
+      throw new Error("좋아요 누른 게시물 탐색 실패");
+    }
+  };
 }
 
 export default UserService;

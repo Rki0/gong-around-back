@@ -24,6 +24,20 @@ class UserController {
       return res.status(500).json({ message: err.message });
     }
   };
+
+  likedFeeds = async (req: Request, res: Response) => {
+    const userId = req.userId as string;
+    const page = parseInt(req.query.page as string, 10);
+
+    try {
+      const likedFeeds = await this.userService.likedFeeds(userId, page);
+
+      return res.status(201).json(likedFeeds);
+    } catch (err) {
+      console.log(err);
+      return res.status(500).json({ message: err.message });
+    }
+  };
 }
 
 export default UserController;

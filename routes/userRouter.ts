@@ -7,5 +7,6 @@ const router = Router();
 const userController = new UserController();
 
 router.delete("/withdraw", authMiddleware, userController.withdraw);
+router.get("/like", authMiddleware, userController.likedFeeds);
 
 export default router;
