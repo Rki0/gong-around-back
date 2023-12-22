@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 
 import User from "../models/User";
 import connectRedis from "../utils/redis";
+import UserDB from "../common/userDB";
 
 interface UserInfo {
   nickname: string;
@@ -68,17 +69,7 @@ class AuthService {
       throw new Error("존재하지 않는 유저입니다.");
     }
 
-    let isValidPassword = false;
-
-    try {
-      isValidPassword = await bcrypt.compare(password, existingUser.password);
-    } catch (err) {
-      throw new Error("비밀번호 비교가 실패했습니다.");
-    }
-
-    if (!isValidPassword) {
-      throw new Error("비밀번호가 일치하지 않습니다.");
-    }
+    await UserDB.checkPassword(password, existingUser.password);
 
     let accessToken;
 

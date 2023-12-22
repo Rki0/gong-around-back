@@ -20,18 +20,7 @@ class UserService {
   // 회원 탈퇴를 하더라도 그 유저가 만들어낸 좋아요 증가분은 유지하도록 한다.
   withdraw = async (userId: string, password: string) => {
     const existingUser = await UserDB.getById(userId);
-
-    let isValidPassword = false;
-
-    try {
-      isValidPassword = await bcrypt.compare(password, existingUser.password);
-    } catch (err) {
-      throw new Error("비밀번호 비교가 실패했습니다.");
-    }
-
-    if (!isValidPassword) {
-      throw new Error("비밀번호가 일치하지 않습니다.");
-    }
+    await UserDB.checkPassword(password, existingUser.password);
 
     const session = await mongoose.startSession();
 
@@ -123,20 +112,7 @@ class UserService {
     const existingUser = await UserDB.getById(userId);
 
     if (inputtedInfo.password && inputtedInfo.newPassword) {
-      let isValidPassword = false;
-
-      try {
-        isValidPassword = await bcrypt.compare(
-          inputtedInfo.password,
-          existingUser.password
-        );
-      } catch (err) {
-        throw new Error("비밀번호 비교가 실패했습니다.");
-      }
-
-      if (!isValidPassword) {
-        throw new Error("비밀번호가 일치하지 않습니다.");
-      }
+      await UserDB.checkPassword(inputtedInfo.password, existingUser.password);
 
       let hashedPassword;
 
