@@ -18,6 +18,18 @@ class UserDB {
 
     return existingUser;
   };
+
+  static getByEmail = async (email: string) => {
+    let existingUser;
+
+    try {
+      existingUser = await User.findOne({ email });
+    } catch (err) {
+      throw new Error("입력한 이메일을 찾을 수 없습니다.");
+    }
+
+    return existingUser;
+  };
 }
 
 export default UserDB;
