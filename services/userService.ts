@@ -9,6 +9,7 @@ import User from "../models/User";
 import UserDB from "../common/userDB";
 import Location from "../models/Location";
 import Image from "../models/Image";
+import BcryptModule from "../common/bcryptModule";
 
 interface InputtedInfo {
   newNickname?: string;
@@ -20,7 +21,7 @@ class UserService {
   // 회원 탈퇴를 하더라도 그 유저가 만들어낸 좋아요 증가분은 유지하도록 한다.
   withdraw = async (userId: string, password: string) => {
     const existingUser = await UserDB.getById(userId);
-    await UserDB.checkPassword(password, existingUser.password);
+    await BcryptModule.checkPassword(password, existingUser.password);
 
     const session = await mongoose.startSession();
 
@@ -112,7 +113,10 @@ class UserService {
     const existingUser = await UserDB.getById(userId);
 
     if (inputtedInfo.password && inputtedInfo.newPassword) {
-      await UserDB.checkPassword(inputtedInfo.password, existingUser.password);
+      await BcryptModule.checkPassword(
+        inputtedInfo.password,
+        existingUser.password
+      );
 
       let hashedPassword;
 

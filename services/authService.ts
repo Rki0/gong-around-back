@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 
 import User from "../models/User";
 import connectRedis from "../utils/redis";
-import UserDB from "../common/userDB";
+import BcryptModule from "../common/bcryptModule";
 
 interface UserInfo {
   nickname: string;
@@ -69,7 +69,7 @@ class AuthService {
       throw new Error("존재하지 않는 유저입니다.");
     }
 
-    await UserDB.checkPassword(password, existingUser.password);
+    await BcryptModule.checkPassword(password, existingUser.password);
 
     let accessToken;
 
