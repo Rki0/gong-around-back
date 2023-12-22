@@ -38,6 +38,20 @@ class UserController {
       return res.status(500).json({ message: err.message });
     }
   };
+
+  updateInfo = async (req: Request, res: Response) => {
+    const userId = req.userId as string;
+    const inputtedInfo = req.body;
+
+    try {
+      await this.userService.updateInfo(userId, inputtedInfo);
+
+      return res.status(201).json({ message: "회원 정보 수정 성공" });
+    } catch (err) {
+      console.log(err);
+      return res.status(500).json({ message: err.message });
+    }
+  };
 }
 
 export default UserController;

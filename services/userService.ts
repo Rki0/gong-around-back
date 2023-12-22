@@ -10,6 +10,12 @@ import UserDB from "../common/userDB";
 import Location from "../models/Location";
 import Image from "../models/Image";
 
+interface InputtedInfo {
+  newNickname?: string;
+  password?: string;
+  newPassword?: string;
+}
+
 class UserService {
   // 회원 탈퇴를 하더라도 그 유저가 만들어낸 좋아요 증가분은 유지하도록 한다.
   withdraw = async (userId: string, password: string) => {
@@ -110,6 +116,47 @@ class UserService {
     } catch (err) {
       console.log(err);
       throw new Error("좋아요 누른 게시물 탐색 실패");
+    }
+  };
+
+  updateInfo = async (userId: string, inputtedInfo: InputtedInfo) => {
+    const existingUser = await UserDB.getById(userId);
+
+    if (inputtedInfo.password && inputtedInfo.newPassword) {
+      let isValidPassword = false;
+
+      try {
+        isValidPassword = await bcrypt.compare(
+          inputtedInfo.password,
+          existingUser.password
+        );
+      } catch (err) {
+        throw new Error("비밀번호 비교가 실패했습니다.");
+      }
+
+      if (!isValidPassword) {
+        throw new Error("비밀번호가 일치하지 않습니다.");
+      }
+
+      let hashedPassword;
+
+      try {
+        hashedPassword = await bcrypt.hash(inputtedInfo.newPassword, 12);
+      } catch (err) {
+        throw new Error("비밀번호 암호화 중 에러가 발생했습니다.");
+      }
+
+      existingUser.password = hashedPassword;
+    }
+
+    if (inputtedInfo.newNickname) {
+      existingUser.nickname = inputtedInfo.newNickname;
+    }
+
+    try {
+      await existingUser.save();
+    } catch (err) {
+      throw new Error("회원 정보 수정 실패");
     }
   };
 }
