@@ -118,13 +118,9 @@ class UserService {
         existingUser.password
       );
 
-      let hashedPassword;
-
-      try {
-        hashedPassword = await bcrypt.hash(inputtedInfo.newPassword, 12);
-      } catch (err) {
-        throw new Error("비밀번호 암호화 중 에러가 발생했습니다.");
-      }
+      const hashedPassword = await BcryptModule.hashPassword(
+        inputtedInfo.newPassword
+      );
 
       existingUser.password = hashedPassword;
     }

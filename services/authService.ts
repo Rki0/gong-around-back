@@ -32,13 +32,7 @@ class AuthService {
       throw new Error("이미 가입된 이메일입니다.");
     }
 
-    let hashedPassword;
-
-    try {
-      hashedPassword = await bcrypt.hash(password, 12);
-    } catch (err) {
-      throw new Error("비밀번호 암호화 중 에러가 발생했습니다.");
-    }
+    const hashedPassword = await BcryptModule.hashPassword(password);
 
     const createdUser = new User({
       nickname,

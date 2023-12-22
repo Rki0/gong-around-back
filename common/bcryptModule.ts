@@ -17,6 +17,18 @@ class BcryptModule {
       throw new Error("비밀번호가 일치하지 않습니다.");
     }
   };
+
+  static hashPassword = async (password: string) => {
+    let hashedPassword;
+
+    try {
+      hashedPassword = await bcrypt.hash(password, 12);
+    } catch (err) {
+      throw new Error("비밀번호 암호화 중 에러가 발생했습니다.");
+    }
+
+    return hashedPassword;
+  };
 }
 
 export default BcryptModule;
