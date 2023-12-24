@@ -1,5 +1,4 @@
 import { Request, Response, NextFunction } from "express";
-import jwt from "jsonwebtoken";
 import JwtModule from "../common/jwtModule";
 
 const authMiddleware = async (
@@ -19,7 +18,7 @@ const authMiddleware = async (
 
   try {
     // verify access token
-    jwt.verify(accessToken, process.env.JWT_KEY as string);
+    JwtModule.verifyToken(accessToken);
   } catch (err) {
     // the error which is not expired error
     if (err.message !== "jwt expired") {

@@ -1,5 +1,3 @@
-import jwt from "jsonwebtoken";
-
 import User from "../models/User";
 import connectRedis from "../utils/redis";
 import BcryptModule from "../common/bcryptModule";
@@ -121,38 +119,36 @@ class AuthService {
 
     try {
       // verify refresh token
-      jwt.verify(refreshToken, process.env.JWT_KEY as string);
+      JwtModule.verifyToken(refreshToken);
     } catch (err) {
-      // case : refresh token expired
-      if (err.message === "jwt expired") {
-        const redisClient = await connectRedis();
-
-        let isRefreshTokenExist;
-
-        try {
-          isRefreshTokenExist = await redisClient.get(
-            decodedAccessToken.userId
-          );
-        } catch (err) {
-          console.log(err);
-          throw new Error("리프레쉬 토큰 검색 실패");
-        }
-
-        if (!isRefreshTokenExist) {
-          await redisClient.disconnect();
-          throw new Error("리프레쉬 토큰 없음.");
-        }
-
-        try {
-          await redisClient.del(decodedAccessToken.userId);
-        } catch (err) {
-          throw new Error("리프레쉬 토큰 삭제 실패");
-        }
-
-        await redisClient.disconnect();
+      if (err.message !== "jwt expired") {
+        throw new Error(err.message);
       }
 
-      throw new Error(err.message);
+      // case : refresh token expired
+      const redisClient = await connectRedis();
+
+      let isRefreshTokenExist;
+
+      try {
+        isRefreshTokenExist = await redisClient.get(decodedAccessToken.userId);
+      } catch (err) {
+        console.log(err);
+        throw new Error("리프레쉬 토큰 검색 실패");
+      }
+
+      if (!isRefreshTokenExist) {
+        await redisClient.disconnect();
+        throw new Error("리프레쉬 토큰 없음.");
+      }
+
+      try {
+        await redisClient.del(decodedAccessToken.userId);
+      } catch (err) {
+        throw new Error("리프레쉬 토큰 삭제 실패");
+      }
+
+      await redisClient.disconnect();
     }
 
     // case : refresh token not expired
