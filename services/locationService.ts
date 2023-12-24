@@ -22,7 +22,7 @@ class LocationService {
             type: "Point",
             coordinates: [location.lng, location.lat],
           },
-          $maxDistance: 100000, // meter. 100km
+          $maxDistance: 20000, // meter === 20km. 60km/h 속도로 20분 거리.
         },
       },
     })
