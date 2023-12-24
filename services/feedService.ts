@@ -7,6 +7,8 @@ import Image from "../models/Image";
 import connectRedis from "../utils/redis";
 import UserDB from "../common/userDB";
 import FeedDB from "../common/feedDB";
+import SubComment from "../models/SubComment";
+import Comment from "../models/Comment";
 
 interface FeedLocation {
   address: string;
@@ -217,6 +219,49 @@ class FeedService {
     await session.endSession();
 
     // TODO: update top 10 liked, 10 viewed feeds which around each airport in redis
+  };
+
+  deleteFeed = async (userId: string, feedId: string) => {
+    const existingUser = await UserDB.getById(userId);
+
+    const session = await mongoose.startSession();
+
+    try {
+      session.startTransaction();
+
+      await SubComment.deleteMany({ feed: feedId }).session(session);
+      await Comment.deleteMany({ feed: feedId }).session(session);
+      await Location.deleteOne({ feed: feedId }).session(session);
+
+      const s3 = new S3Client({
+        region: process.env.AWS_REGION,
+      });
+
+      const images = await Image.find({ writer: existingUser._id });
+
+      await Promise.all(
+        images.map(
+          async (image) =>
+            await s3.send(
+              new DeleteObjectCommand({
+                Bucket: process.env.AWS_S3_BUCKET_NAME!,
+                Key: image.key,
+              })
+            )
+        )
+      );
+
+      s3.destroy();
+
+      await Image.deleteMany({ feed: feedId }).session(session);
+
+      await session.commitTransaction();
+      await session.endSession();
+    } catch (err) {
+      session.abortTransaction();
+      session.endSession();
+      throw new Error("게시물 삭제 세션 실패");
+    }
   };
 
   detailFeed = async (feedId: string, clientIP: string) => {

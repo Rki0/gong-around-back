@@ -9,6 +9,7 @@ const feedController = new FeedController();
 
 router.get("/pagination", feedController.pagination);
 router.get("/:feedId", feedController.detailFeed);
+router.delete("/:feedId", authMiddleware, feedController.deleteFeed);
 router.post(
   "/",
   authMiddleware,

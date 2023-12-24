@@ -48,6 +48,19 @@ class FeedController {
     }
   };
 
+  deleteFeed = async (req: Request, res: Response) => {
+    const userId = req.userId as string;
+    const feedId = req.params.feedId;
+
+    try {
+      await this.feedService.deleteFeed(userId, feedId);
+
+      return res.status(204).json({ message: "게시물 삭제 성공" });
+    } catch (err) {
+      return res.status(500).json({ message: err.message });
+    }
+  };
+
   detailFeed = async (req: Request, res: Response) => {
     const feedId = req.params.feedId;
 
