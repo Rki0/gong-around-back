@@ -5,6 +5,7 @@ import User from "../models/User";
 import connectRedis from "../utils/redis";
 import BcryptModule from "../common/bcryptModule";
 import UserDB from "../common/userDB";
+import JwtModule from "../common/jwtModule";
 
 interface UserInfo {
   nickname: string;
@@ -59,33 +60,15 @@ class AuthService {
 
     await BcryptModule.checkPassword(password, existingUser.password);
 
-    let accessToken;
+    const accessToken = JwtModule.signToken(
+      {
+        userId: existingUser.id,
+        nickname: existingUser.nickname,
+      },
+      "30m"
+    );
 
-    try {
-      accessToken = jwt.sign(
-        {
-          userId: existingUser.id,
-          nickname: existingUser.nickname,
-        },
-        process.env.JWT_KEY as string,
-        { expiresIn: "30m" }
-      );
-    } catch (err) {
-      throw new Error("토큰 생성 실패");
-    }
-
-    // TODO: 이미 refreshToken이 redis에 존재하는 경우에는 발급하지 않아도 되지 않나..?
-    // TODO: 로그아웃하고 로그인하는 경우와 그렇지 않은 경우 등 상황이 많은가..?
-
-    let refreshToken;
-
-    try {
-      refreshToken = jwt.sign({}, process.env.JWT_KEY as string, {
-        expiresIn: "14d",
-      });
-    } catch (err) {
-      throw new Error("리프레쉬 토큰 생성 실패");
-    }
+    const refreshToken = JwtModule.signToken({}, "14d");
 
     // cache the refresh token to Redis
     const redisClient = await connectRedis();
@@ -186,36 +169,20 @@ class AuthService {
 
     // case : refresh token not expired
     // re-generate access token
-    let newAccessToken;
+    const newAccessToken = JwtModule.signToken(
+      {
+        userId: decodedAccessToken.userId,
+        nickname: decodedAccessToken.nickname,
+      },
+      "30m"
+    );
 
-    try {
-      newAccessToken = jwt.sign(
-        {
-          userId: decodedAccessToken.userId,
-          nickname: decodedAccessToken.nickname,
-        },
-        process.env.JWT_KEY as string,
-        { expiresIn: "30m" }
-      );
-    } catch (err) {
-      throw new Error("토큰 생성 실패");
-    }
-
-    let newRefreshToken;
-
-    try {
-      newRefreshToken = jwt.sign(
-        {
-          // date: Date.now(),
-        },
-        process.env.JWT_KEY as string,
-        {
-          expiresIn: "14d",
-        }
-      );
-    } catch (err) {
-      throw new Error("리프레쉬 토큰 생성 실패");
-    }
+    const newRefreshToken = JwtModule.signToken(
+      {
+        // date: Date.now(),
+      },
+      "14d"
+    );
 
     // cache the refresh token to Redis
     const redisClient = await connectRedis();
