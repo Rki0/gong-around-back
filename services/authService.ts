@@ -1,5 +1,5 @@
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
+import jwt, { JwtPayload } from "jsonwebtoken";
 
 import User from "../models/User";
 import connectRedis from "../utils/redis";
@@ -15,6 +15,11 @@ interface UserInfo {
 interface LogInUserInfo {
   email: string;
   password: string;
+}
+
+interface JwtCustomPayload extends JwtPayload {
+  userId: string;
+  nickname: string;
 }
 
 class AuthService {
@@ -129,6 +134,107 @@ class AuthService {
 
     await redisClient.disconnect();
     return;
+  };
+
+  reSignAccessToken = async (
+    expiredAccessToken: string,
+    refreshToken: string
+  ) => {
+    const decodedAccessToken = jwt.decode(
+      expiredAccessToken
+    ) as JwtCustomPayload;
+
+    if (!decodedAccessToken) {
+      throw new Error("Decoding Access Token failed");
+    }
+
+    try {
+      // verify refresh token
+      jwt.verify(refreshToken, process.env.JWT_KEY as string);
+    } catch (err) {
+      // case : refresh token expired
+      if (err.message === "jwt expired") {
+        const redisClient = await connectRedis();
+
+        let isRefreshTokenExist;
+
+        try {
+          isRefreshTokenExist = await redisClient.get(
+            decodedAccessToken.userId
+          );
+        } catch (err) {
+          console.log(err);
+          throw new Error("리프레쉬 토큰 검색 실패");
+        }
+
+        if (!isRefreshTokenExist) {
+          await redisClient.disconnect();
+          throw new Error("리프레쉬 토큰 없음.");
+        }
+
+        try {
+          await redisClient.del(decodedAccessToken.userId);
+        } catch (err) {
+          throw new Error("리프레쉬 토큰 삭제 실패");
+        }
+
+        await redisClient.disconnect();
+      }
+
+      throw new Error(err.message);
+    }
+
+    // case : refresh token not expired
+    // re-generate access token
+    let newAccessToken;
+
+    try {
+      newAccessToken = jwt.sign(
+        {
+          userId: decodedAccessToken.userId,
+          nickname: decodedAccessToken.nickname,
+        },
+        process.env.JWT_KEY as string,
+        { expiresIn: "30m" }
+      );
+    } catch (err) {
+      throw new Error("토큰 생성 실패");
+    }
+
+    let newRefreshToken;
+
+    try {
+      newRefreshToken = jwt.sign(
+        {
+          // date: Date.now(),
+        },
+        process.env.JWT_KEY as string,
+        {
+          expiresIn: "14d",
+        }
+      );
+    } catch (err) {
+      throw new Error("리프레쉬 토큰 생성 실패");
+    }
+
+    // cache the refresh token to Redis
+    const redisClient = await connectRedis();
+
+    try {
+      // cache time : same with refresh token's expired time : 14d
+      await redisClient.set(decodedAccessToken.userId, newRefreshToken, {
+        EX: 60 * 60 * 24 * 14,
+      });
+    } catch (err) {
+      throw new Error("리프레쉬 토큰 캐싱 실패");
+    }
+
+    await redisClient.disconnect();
+
+    return {
+      newAccessToken,
+      newRefreshToken,
+    };
   };
 }
 
