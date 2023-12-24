@@ -149,10 +149,14 @@ class FeedService {
     );
 
     const createdLocation = new Location({
-      ...location,
       _id: locationId,
       feed: feedId,
       writer: userId,
+      address: location.address,
+      location: {
+        type: "Point",
+        coordinates: [location.lng, location.lat],
+      },
     });
 
     const createdFeed = new Feed({
@@ -219,7 +223,6 @@ class FeedService {
     let feed;
 
     // FIXME: 빈 배열인 경우 populate를 걸면 에러가 뜨는 듯함(comments, subComments)
-    // TODO: wrtier field should contain profile img
     try {
       // reference : how to select specific field with populate
       // https://mongoosejs.com/docs/populate.html#field-selection
@@ -324,7 +327,7 @@ class FeedService {
     let alreadyLiked = false;
 
     alreadyLiked = existingUser.likedFeeds.some(
-      (likedFeedId) => likedFeedId.feed.toString() === feedId
+      (likedFeedId) => likedFeedId.toString() === feedId
     );
 
     if (alreadyLiked) {
@@ -339,9 +342,7 @@ class FeedService {
       existingFeed.like++;
       await existingFeed.save({ session });
 
-      existingUser.likedFeeds.push({
-        feed: new mongoose.Types.ObjectId(feedId),
-      });
+      existingUser.likedFeeds.push(new mongoose.Types.ObjectId(feedId));
       await existingUser.save({ session });
 
       await session.commitTransaction();
@@ -363,7 +364,7 @@ class FeedService {
     let alreadyLiked = false;
 
     alreadyLiked = existingUser.likedFeeds.some(
-      (likedFeedId) => likedFeedId.feed.toString() === feedId
+      (likedFeedId) => likedFeedId.toString() === feedId
     );
 
     if (!alreadyLiked) {
@@ -379,7 +380,7 @@ class FeedService {
       await existingFeed.save({ session });
 
       existingUser.likedFeeds = existingUser.likedFeeds.filter(
-        (likedFeed) => likedFeed.feed.toString() !== feedId
+        (likedFeed) => likedFeed.toString() !== feedId
       );
       await existingUser.save({ session });
 
