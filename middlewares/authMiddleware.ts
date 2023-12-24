@@ -1,10 +1,6 @@
 import { Request, Response, NextFunction } from "express";
-import jwt, { JwtPayload } from "jsonwebtoken";
-
-interface JwtCustomPayload extends JwtPayload {
-  userId: string;
-  nickname: string;
-}
+import jwt from "jsonwebtoken";
+import JwtModule from "../common/jwtModule";
 
 const authMiddleware = async (
   req: Request,
@@ -35,11 +31,7 @@ const authMiddleware = async (
     return res.redirect("/api/auth/resignToken");
   }
 
-  const { userId } = jwt.decode(accessToken) as JwtCustomPayload;
-
-  if (!userId) {
-    throw new Error("No user data");
-  }
+  const { userId } = JwtModule.decodeToken(accessToken);
 
   // reference
   // https://www.kindacode.com/article/express-typescript-extending-request-and-response-objects/

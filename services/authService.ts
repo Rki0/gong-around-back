@@ -1,5 +1,4 @@
-import bcrypt from "bcrypt";
-import jwt, { JwtPayload } from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 
 import User from "../models/User";
 import connectRedis from "../utils/redis";
@@ -16,11 +15,6 @@ interface UserInfo {
 interface LogInUserInfo {
   email: string;
   password: string;
-}
-
-interface JwtCustomPayload extends JwtPayload {
-  userId: string;
-  nickname: string;
 }
 
 class AuthService {
@@ -123,13 +117,7 @@ class AuthService {
     expiredAccessToken: string,
     refreshToken: string
   ) => {
-    const decodedAccessToken = jwt.decode(
-      expiredAccessToken
-    ) as JwtCustomPayload;
-
-    if (!decodedAccessToken) {
-      throw new Error("Decoding Access Token failed");
-    }
+    const decodedAccessToken = JwtModule.decodeToken(expiredAccessToken);
 
     try {
       // verify refresh token
