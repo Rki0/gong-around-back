@@ -16,12 +16,12 @@ class CommentService {
     userId: string,
     commentData: CommentData
   ) => {
-    const existingUser = await UserDB.getById(userId);
+    await UserDB.getById(userId);
     const existingFeed = await FeedDB.getById(feedId);
 
     const createdComment = new Comment({
       description: commentData.description,
-      writer: existingUser._id,
+      writer: userId,
       feed: existingFeed._id,
     });
 
@@ -31,9 +31,6 @@ class CommentService {
       session.startTransaction();
 
       await createdComment.save({ session });
-
-      existingUser.writedComments.push(createdComment._id);
-      await existingUser.save({ session });
 
       existingFeed.comments.push(createdComment._id);
       await existingFeed.save({ session });
@@ -50,7 +47,7 @@ class CommentService {
   };
 
   deleteComment = async (feedId: string, commentId: string, userId: string) => {
-    const existingUser = await UserDB.getById(userId);
+    await UserDB.getById(userId);
     const existingFeed = await FeedDB.getById(feedId);
     const existingComment = await CommentDB.getById(commentId);
     CommentDB.verifyWriter(existingComment.writer._id.toString(), userId);
@@ -67,11 +64,6 @@ class CommentService {
       );
 
       await Comment.findByIdAndDelete(existingComment._id).session(session);
-
-      existingUser.writedComments = existingUser.writedComments.filter(
-        (data) => data._id.toString() !== commentId
-      );
-      await existingUser.save({ session });
 
       existingFeed.comments = existingFeed.comments.filter(
         (data) => data._id.toString() !== commentId
