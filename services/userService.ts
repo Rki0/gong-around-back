@@ -1,6 +1,5 @@
 import mongoose from "mongoose";
-import bcrypt from "bcrypt";
-import { DeleteObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { DeleteObjectCommand } from "@aws-sdk/client-s3";
 
 import Comment from "../models/Comment";
 import SubComment from "../models/SubComment";
@@ -10,6 +9,7 @@ import UserDB from "../common/userDB";
 import Location from "../models/Location";
 import Image from "../models/Image";
 import BcryptModule from "../common/bcryptModule";
+import S3Module from "../common/s3Module";
 
 interface InputtedInfo {
   newNickname?: string;
@@ -26,9 +26,7 @@ class UserService {
     const session = await mongoose.startSession();
 
     try {
-      const s3 = new S3Client({
-        region: process.env.AWS_REGION,
-      });
+      const s3 = S3Module.openClient();
 
       const images = await Image.find({ writer: existingUser._id });
 

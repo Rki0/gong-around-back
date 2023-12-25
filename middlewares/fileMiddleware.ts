@@ -1,7 +1,8 @@
-import { S3Client } from "@aws-sdk/client-s3";
 import multer from "multer";
 import multerS3 from "multer-s3";
 import dotenv from "dotenv";
+
+import S3Module from "../common/s3Module";
 
 dotenv.config();
 
@@ -19,9 +20,7 @@ const ALLOWED_MIME_TYPE: AllowedMimeType = {
 // reference
 // https://docs.aws.amazon.com/sdk-for-javascript/v2/developer-guide/loading-node-credentials-environment.html
 // https://velog.io/@zero-black/AWS-aws-sdk%EB%A1%9C-S3-bucket-%EC%97%B0%EA%B2%B0%ED%95%98%EA%B8%B0
-const s3 = new S3Client({
-  region: process.env.AWS_REGION,
-});
+const s3 = S3Module.openClient();
 
 const fileMiddleware = multer({
   fileFilter: (req, file, cb) => {

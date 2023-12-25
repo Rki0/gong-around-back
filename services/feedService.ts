@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { DeleteObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { DeleteObjectCommand } from "@aws-sdk/client-s3";
 
 import Feed from "../models/Feed";
 import Location from "../models/Location";
@@ -9,6 +9,7 @@ import UserDB from "../common/userDB";
 import FeedDB from "../common/feedDB";
 import SubComment from "../models/SubComment";
 import Comment from "../models/Comment";
+import S3Module from "../common/s3Module";
 
 interface FeedLocation {
   address: string;
@@ -183,9 +184,7 @@ class FeedService {
     } catch (err) {
       console.log(err);
 
-      const s3 = new S3Client({
-        region: process.env.AWS_REGION,
-      });
+      const s3 = S3Module.openClient();
 
       try {
         await Promise.all(
@@ -226,9 +225,7 @@ class FeedService {
       await Comment.deleteMany({ feed: feedId }).session(session);
       await Location.deleteOne({ feed: feedId }).session(session);
 
-      const s3 = new S3Client({
-        region: process.env.AWS_REGION,
-      });
+      const s3 = S3Module.openClient();
 
       const images = await Image.find({ writer: existingUser._id });
 
