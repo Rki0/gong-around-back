@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import { DeleteObjectCommand } from "@aws-sdk/client-s3";
 
 import Comment from "../models/Comment";
 import SubComment from "../models/SubComment";
@@ -30,17 +29,7 @@ class UserService {
 
       const images = await Image.find({ writer: existingUser._id });
 
-      await Promise.all(
-        images.map(
-          async (image) =>
-            await s3.send(
-              new DeleteObjectCommand({
-                Bucket: process.env.AWS_S3_BUCKET_NAME!,
-                Key: image.key,
-              })
-            )
-        )
-      );
+      await S3Module.deleteMany(s3, images);
 
       session.startTransaction();
 

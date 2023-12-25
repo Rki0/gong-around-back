@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import { DeleteObjectCommand } from "@aws-sdk/client-s3";
 
 import Feed from "../models/Feed";
 import Location from "../models/Location";
@@ -10,7 +9,6 @@ import FeedDB from "../common/feedDB";
 import SubComment from "../models/SubComment";
 import Comment from "../models/Comment";
 import S3Module from "../common/s3Module";
-import User from "../models/User";
 
 interface FeedLocation {
   address: string;
@@ -187,22 +185,7 @@ class FeedService {
 
       const s3 = S3Module.openClient();
 
-      try {
-        await Promise.all(
-          images.map(
-            async (image) =>
-              await s3.send(
-                new DeleteObjectCommand({
-                  Bucket: process.env.AWS_S3_BUCKET_NAME!,
-                  Key: image.key,
-                })
-              )
-          )
-        );
-      } catch (err) {
-        console.log("S3 이미지 삭제 실패:", err);
-        throw new Error("S3 이미지 삭제 실패");
-      }
+      await S3Module.deleteMany(s3, images);
 
       await session.abortTransaction();
       await session.endSession();
@@ -230,17 +213,7 @@ class FeedService {
 
       const images = await Image.find({ writer: existingUser._id });
 
-      await Promise.all(
-        images.map(
-          async (image) =>
-            await s3.send(
-              new DeleteObjectCommand({
-                Bucket: process.env.AWS_S3_BUCKET_NAME!,
-                Key: image.key,
-              })
-            )
-        )
-      );
+      await S3Module.deleteMany(s3, images);
 
       s3.destroy();
 
