@@ -123,11 +123,7 @@ class FeedService {
   };
 
   createFeed = async (userId: string, feedData: FeedData) => {
-    const existingUser = await UserDB.getById(userId);
-
-    // reference
-    // https://mongoosejs.com/docs/populate.html
-    await existingUser.populate("writedFeeds");
+    await UserDB.getById(userId);
 
     const { images, location, ...feedDataExceptRef } = feedData;
 
@@ -182,9 +178,6 @@ class FeedService {
       );
       await createdLocation.save({ session });
       await createdFeed.save({ session });
-
-      existingUser.writedFeeds.push(feedId);
-      await existingUser.save({ session });
 
       await session.commitTransaction();
     } catch (err) {
