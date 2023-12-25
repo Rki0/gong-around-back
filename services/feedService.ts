@@ -255,6 +255,24 @@ class FeedService {
 
       await Image.deleteMany({ feed: feedId }).session(session);
 
+      const redisClient = await connectRedis();
+
+      try {
+        await redisClient.del(feedId);
+      } catch (err) {
+        await redisClient.disconnect();
+        throw new Error("조회수 어뷰징 차단용 IP 캐싱 제거 실패");
+      }
+
+      try {
+        await redisClient.hDel("viewCounts", feedId);
+      } catch (err) {
+        await redisClient.disconnect();
+        throw new Error("조회수 캐싱 제거 실패");
+      }
+
+      await redisClient.disconnect();
+
       await session.commitTransaction();
       await session.endSession();
     } catch (err) {
