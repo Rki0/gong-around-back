@@ -26,13 +26,13 @@ class SubCommentService {
     userId: string,
     subCommentData: SubCommentData
   ) => {
-    const existingUser = await UserDB.getById(userId);
+    await UserDB.getById(userId);
     const existingFeed = await FeedDB.getById(feedId);
     const existingComment = await CommentDB.getById(commentId);
 
     const createdSubComment = new SubComment({
       description: subCommentData.description,
-      writer: existingUser._id,
+      writer: userId,
       feed: existingFeed._id,
       parentComment: existingComment._id,
     });
@@ -67,7 +67,7 @@ class SubCommentService {
     userId: string,
     subCommentData: DeleteSubCommentData
   ) => {
-    const existingUser = await UserDB.getById(userId);
+    await UserDB.getById(userId);
     const existingFeed = await FeedDB.getById(feedId);
     const existingComment = await CommentDB.getById(commentId);
     const existingSubComment = await SubCommentDB.getById(subCommentData._id);
