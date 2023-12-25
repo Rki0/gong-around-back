@@ -9,14 +9,16 @@ const feedController = new FeedController();
 
 router.get("/pagination", feedController.pagination);
 router.get("/:feedId", feedController.detailFeed);
-router.delete("/:feedId", authMiddleware, feedController.deleteFeed);
+
+router.use(authMiddleware);
+
+router.delete("/:feedId", feedController.deleteFeed);
 router.post(
   "/",
-  authMiddleware,
   fileMiddleware.array("images", 5), // To get some files, filedName must be equal to FormData's file property "name" which appended by client side logic.
   feedController.createFeed
 );
-router.post("/:feedId/like", authMiddleware, feedController.likeFeed);
-router.post("/:feedId/dislike", authMiddleware, feedController.dislikeFeed);
+router.post("/:feedId/like", feedController.likeFeed);
+router.post("/:feedId/dislike", feedController.dislikeFeed);
 
 export default router;
