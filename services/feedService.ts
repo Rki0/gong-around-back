@@ -10,6 +10,7 @@ import FeedDB from "../common/feedDB";
 import SubComment from "../models/SubComment";
 import Comment from "../models/Comment";
 import S3Module from "../common/s3Module";
+import User from "../models/User";
 
 interface FeedLocation {
   address: string;
@@ -244,6 +245,7 @@ class FeedService {
       s3.destroy();
 
       await Image.deleteMany({ feed: feedId }).session(session);
+      await Feed.findByIdAndDelete(feedId).session(session);
 
       const redisClient = await connectRedis();
 
