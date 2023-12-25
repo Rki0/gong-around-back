@@ -9,7 +9,6 @@ interface User {
   password: string;
   writedFeeds: Types.ObjectId[];
   writedComments: Types.ObjectId[];
-  writedSubComments: Types.ObjectId[];
   likedFeeds: Types.ObjectId[];
 }
 
@@ -42,13 +41,6 @@ const userSchema = new Schema<User>(
         type: Schema.Types.ObjectId,
         required: true,
         ref: "Comment",
-      },
-    ],
-    writedSubComments: [
-      {
-        type: Schema.Types.ObjectId,
-        required: true,
-        ref: "SubComment",
       },
     ],
     likedFeeds: [

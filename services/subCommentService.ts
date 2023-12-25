@@ -44,9 +44,6 @@ class SubCommentService {
 
       await createdSubComment.save({ session });
 
-      existingUser.writedSubComments.push(createdSubComment._id);
-      await existingUser.save({ session });
-
       existingFeed.subComments.push(createdSubComment._id);
       await existingFeed.save({ session });
 
@@ -86,11 +83,6 @@ class SubCommentService {
       await SubComment.findByIdAndDelete(existingSubComment._id).session(
         session
       );
-
-      existingUser.writedSubComments = existingUser.writedSubComments.filter(
-        (data) => data._id.toString() !== subCommentData._id
-      );
-      await existingUser.save({ session });
 
       existingFeed.subComments = existingFeed.subComments.filter(
         (data) => data._id.toString() !== subCommentData._id
