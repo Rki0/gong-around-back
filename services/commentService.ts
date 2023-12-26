@@ -6,9 +6,7 @@ import UserDB from "../common/userDB";
 import FeedDB from "../common/feedDB";
 import CommentDB from "../common/commentDB";
 
-interface CommentData {
-  description: string;
-}
+import { Comment as CommentData } from "../types/comment";
 
 class CommentService {
   createComment = async (
