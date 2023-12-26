@@ -100,6 +100,14 @@ router.get("/pagination", feedController.pagination);
  *    summary: Get detailed feed
  *    description: Get detail about specific feed.
  *
+ *    parameters:
+ *      - in: path
+ *        name: feedId
+ *        required: true
+ *        schema:
+ *          type: string
+ *        description: feed's unique id
+ *
  *    responses:
  *     '200':
  *      description: Detail about specific feed.
@@ -247,6 +255,14 @@ router.use(authMiddleware);
  *    security:
  *      - bearerAuth: []
  *
+ *    parameters:
+ *      - in: path
+ *        name: feedId
+ *        required: true
+ *        schema:
+ *          type: string
+ *        description: feed's unique id
+ *
  *    responses:
  *     '204':
  *      description: Delete specific feed.
@@ -341,6 +357,14 @@ router.post(
  *    security:
  *      - bearerAuth: []
  *
+ *    parameters:
+ *      - in: path
+ *        name: feedId
+ *        required: true
+ *        schema:
+ *          type: string
+ *        description: feed's unique id
+ *
  *    responses:
  *     '201':
  *      description: Increment like of feed.
@@ -366,6 +390,14 @@ router.post("/:feedId/like", feedController.likeFeed);
  *    description: Decrement like of feed.
  *    security:
  *      - bearerAuth: []
+ *
+ *    parameters:
+ *      - in: path
+ *        name: feedId
+ *        required: true
+ *        schema:
+ *          type: string
+ *        description: feed's unique id
  *
  *    responses:
  *     '201':

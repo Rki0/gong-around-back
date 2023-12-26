@@ -20,6 +20,14 @@ router.use(authMiddleware);
  *    security:
  *      - bearerAuth: []
  *
+ *    parameters:
+ *      - in: path
+ *        name: feedId
+ *        required: true
+ *        schema:
+ *          type: string
+ *        description: feed's unique id
+ *
  *    requestBody:
  *      required: true
  *      content:
@@ -57,6 +65,20 @@ router.post("/:feedId", commentController.createComment);
  *    security:
  *      - bearerAuth: []
  *
+ *    parameters:
+ *      - in: path
+ *        name: feedId
+ *        required: true
+ *        schema:
+ *          type: string
+ *        description: feed's unique id
+ *      - in: path
+ *        name: commentId
+ *        required: true
+ *        schema:
+ *          type: string
+ *        description: comment's unique id
+ *
  *    responses:
  *     '201':
  *      description: Comment was deleted successfully.
@@ -82,6 +104,20 @@ router.delete("/:feedId/:commentId", commentController.deleteComment);
  *    description: Update comment about specific feed.
  *    security:
  *      - bearerAuth: []
+ *
+ *    parameters:
+ *      - in: path
+ *        name: feedId
+ *        required: true
+ *        schema:
+ *          type: string
+ *        description: feed's unique id
+ *      - in: path
+ *        name: commentId
+ *        required: true
+ *        schema:
+ *          type: string
+ *        description: comment's unique id
  *
  *    requestBody:
  *      required: true
