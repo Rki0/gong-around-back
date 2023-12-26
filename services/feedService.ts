@@ -10,22 +10,7 @@ import SubComment from "../models/SubComment";
 import Comment from "../models/Comment";
 import S3Module from "../common/s3Module";
 
-interface FeedLocation {
-  address: string;
-  lat: number;
-  lng: number;
-}
-
-// reference
-// https://stackoverflow.com/questions/57631753/how-to-properly-handle-req-files-in-node-post-request-using-multer-and-typescrip
-// https://devdojo.com/noah071610/typescript-multer-error-property-location-does-not-exist-on-type-file
-interface FeedData {
-  title: string;
-  date: string;
-  location: FeedLocation;
-  description: string;
-  images: Express.MulterS3.File[];
-}
+import { Feed as FeedData } from "../types/feed";
 
 class FeedService {
   pagination = async (page: number, keyword: string | undefined) => {
