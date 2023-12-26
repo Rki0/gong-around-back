@@ -6,17 +6,7 @@ import FeedDB from "../common/feedDB";
 import CommentDB from "../common/commentDB";
 import SubCommentDB from "../common/subCommentDB";
 
-interface SubCommentData {
-  description: string;
-}
-
-interface DeleteSubCommentData {
-  _id: string;
-}
-
-interface UpdateSubCommentData {
-  description: string;
-}
+import { SubComment as SubCommentData } from "../types/subComment";
 
 class SubCommentService {
   createSubComment = async (
@@ -107,7 +97,7 @@ class SubCommentService {
     commentId: string,
     userId: string,
     subCommentId: string,
-    subCommentData: UpdateSubCommentData
+    subCommentData: SubCommentData
   ) => {
     await UserDB.getById(userId);
     await FeedDB.getById(feedId);
