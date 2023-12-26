@@ -10,11 +10,7 @@ import Image from "../models/Image";
 import BcryptModule from "../common/bcryptModule";
 import S3Module from "../common/s3Module";
 
-interface InputtedInfo {
-  newNickname?: string;
-  password?: string;
-  newPassword?: string;
-}
+import { UpdatedUserInfo } from "../types/user";
 
 class UserService {
   // 회원 탈퇴를 하더라도 그 유저가 만들어낸 좋아요 증가분은 유지하도록 한다.
@@ -95,7 +91,7 @@ class UserService {
     }
   };
 
-  updateInfo = async (userId: string, inputtedInfo: InputtedInfo) => {
+  updateInfo = async (userId: string, inputtedInfo: UpdatedUserInfo) => {
     const existingUser = await UserDB.getById(userId);
 
     if (inputtedInfo.password && inputtedInfo.newPassword) {
