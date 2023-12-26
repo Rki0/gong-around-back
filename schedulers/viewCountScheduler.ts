@@ -14,16 +14,18 @@ const viewCountScheduler = () => {
       // https://stackoverflow.com/questions/8086448/parse-redis-hgetall-object-in-node-js
       const viewCountsInfo = await redisClient.hScan("viewCounts", 0);
 
-      await Promise.all(
-        viewCountsInfo.tuples.map(async (target) => {
-          await Feed.updateOne(
-            { _id: target.field },
-            { $inc: { view: parseInt(target.value, 10) } }
-          );
+      if (viewCountsInfo.tuples.length !== 0) {
+        await Promise.all(
+          viewCountsInfo.tuples.map(async (target) => {
+            await Feed.updateOne(
+              { _id: target.field },
+              { $inc: { view: parseInt(target.value, 10) } }
+            );
 
-          await redisClient.hDel("viewCounts", target.field);
-        })
-      );
+            await redisClient.hDel("viewCounts", target.field);
+          })
+        );
+      }
     } catch (err) {
       await redisClient.disconnect();
       throw new Error(err.message);
