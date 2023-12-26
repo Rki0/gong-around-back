@@ -1,9 +1,6 @@
 import Location from "../models/Location";
 
-interface LocationData {
-  lat: number;
-  lng: number;
-}
+import { Location as LocationData } from "../types/location";
 
 class LocationService {
   getAroundLocation = async (location: LocationData) => {
