@@ -4,19 +4,13 @@ import BcryptModule from "../common/bcryptModule";
 import UserDB from "../common/userDB";
 import JwtModule from "../common/jwtModule";
 
-interface UserInfo {
-  nickname: string;
-  email: string;
-  password: string;
-}
-
-interface LogInUserInfo {
-  email: string;
-  password: string;
-}
+import {
+  SignUpUserInfo,
+  DefaultUserInfo as LogInUserInfo,
+} from "../types/auth";
 
 class AuthService {
-  signUp = async (user: UserInfo) => {
+  signUp = async (user: SignUpUserInfo) => {
     const { nickname, email, password } = user;
 
     const existingUser = await UserDB.getByEmail(email);
