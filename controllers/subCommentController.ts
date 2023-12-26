@@ -33,15 +33,15 @@ class SubCommentController {
   deleteSubComment = async (req: Request, res: Response) => {
     const feedId = req.params.feedId;
     const commentId = req.params.commentId;
+    const subCommentId = req.params.subCommentId;
     const userId = req.userId as string;
-    const subCommentData = req.body;
 
     try {
       await this.subCommentService.deleteSubComment(
         feedId,
         commentId,
         userId,
-        subCommentData
+        subCommentId
       );
 
       return res.status(201).json({ message: "답글 삭제 성공" });
@@ -54,6 +54,7 @@ class SubCommentController {
   updateSubComment = async (req: Request, res: Response) => {
     const feedId = req.params.feedId;
     const commentId = req.params.commentId;
+    const subCommentId = req.params.subCommentId;
     const userId = req.userId as string;
     const subCommentData = req.body;
 
@@ -62,6 +63,7 @@ class SubCommentController {
         feedId,
         commentId,
         userId,
+        subCommentId,
         subCommentData
       );
 

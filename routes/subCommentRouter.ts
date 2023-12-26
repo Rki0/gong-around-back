@@ -11,7 +11,7 @@ router.use(authMiddleware);
 /**
  * @swagger
  * paths:
- *  /api/subcomment/{feedId}/{commentId}:
+ *  /api/subcomment/{feedId}/{commentId}/{subCommentId}:
  *   post:
  *    tags:
  *    - subComment
@@ -19,6 +19,26 @@ router.use(authMiddleware);
  *    description: Create sub-comment about specific feed and comment.
  *    security:
  *      - bearerAuth: []
+ *
+ *    parameters:
+ *      - in: path
+ *        name: feedId
+ *        required: true
+ *        schema:
+ *          type: string
+ *        description: feed's unique id
+ *      - in: path
+ *        name: commentId
+ *        required: true
+ *        schema:
+ *          type: string
+ *        description: comment's unique id
+ *      - in: path
+ *        name: subCommentId
+ *        required: true
+ *        schema:
+ *          type: string
+ *        description: subcomment's unique id
  *
  *    requestBody:
  *      required: true
@@ -48,7 +68,7 @@ router.post("/:feedId/:commentId", subCommentController.createSubComment);
 /**
  * @swagger
  * paths:
- *  /api/subcomment/{feedId}/{commentId}:
+ *  /api/subcomment/{feedId}/{commentId}/{subCommentId}:
  *   delete:
  *    tags:
  *    - subComment
@@ -57,17 +77,25 @@ router.post("/:feedId/:commentId", subCommentController.createSubComment);
  *    security:
  *      - bearerAuth: []
  *
- *    requestBody:
- *      required: true
- *      content:
- *        application/json:
- *          schema:
- *            type: object
- *            properties:
- *              _id:
- *                type: string
- *                description: id of sub-comment
- *                example: 126yefajru283745sdf
+ *    parameters:
+ *      - in: path
+ *        name: feedId
+ *        required: true
+ *        schema:
+ *          type: string
+ *        description: feed's unique id
+ *      - in: path
+ *        name: commentId
+ *        required: true
+ *        schema:
+ *          type: string
+ *        description: comment's unique id
+ *      - in: path
+ *        name: subCommentId
+ *        required: true
+ *        schema:
+ *          type: string
+ *        description: subcomment's unique id
  *
  *    responses:
  *     '201':
@@ -81,12 +109,15 @@ router.post("/:feedId/:commentId", subCommentController.createSubComment);
  *                example: 답글 삭제 성공
  *
  */
-router.delete("/:feedId/:commentId", subCommentController.deleteSubComment);
+router.delete(
+  "/:feedId/:commentId/:subCommentId",
+  subCommentController.deleteSubComment
+);
 
 /**
  * @swagger
  * paths:
- *  /api/subcomment/{feedId}/{commentId}:
+ *  /api/subcomment/{feedId}/{commentId}/{subCommentId}:
  *   patch:
  *    tags:
  *    - subComment
@@ -95,6 +126,26 @@ router.delete("/:feedId/:commentId", subCommentController.deleteSubComment);
  *    security:
  *      - bearerAuth: []
  *
+ *    parameters:
+ *      - in: path
+ *        name: feedId
+ *        required: true
+ *        schema:
+ *          type: string
+ *        description: feed's unique id
+ *      - in: path
+ *        name: commentId
+ *        required: true
+ *        schema:
+ *          type: string
+ *        description: comment's unique id
+ *      - in: path
+ *        name: subCommentId
+ *        required: true
+ *        schema:
+ *          type: string
+ *        description: subcomment's unique id
+ *
  *    requestBody:
  *      required: true
  *      content:
@@ -102,10 +153,6 @@ router.delete("/:feedId/:commentId", subCommentController.deleteSubComment);
  *          schema:
  *            type: object
  *            properties:
- *              _id:
- *                type: string
- *                description: id of sub-comment
- *                example: 126412esfuafksfj
  *              description:
  *                type: string
  *                example: put statement in here what you want to update!
@@ -122,6 +169,9 @@ router.delete("/:feedId/:commentId", subCommentController.deleteSubComment);
  *                example: 답글 수정 성공
  *
  */
-router.patch("/:feedId/:commentId", subCommentController.updateSubComment);
+router.patch(
+  "/:feedId/:commentId/:subCommentId",
+  subCommentController.updateSubComment
+);
 
 export default router;

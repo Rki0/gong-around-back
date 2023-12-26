@@ -15,7 +15,6 @@ interface DeleteSubCommentData {
 }
 
 interface UpdateSubCommentData {
-  _id: string;
   description: string;
 }
 
@@ -64,12 +63,12 @@ class SubCommentService {
     feedId: string,
     commentId: string,
     userId: string,
-    subCommentData: DeleteSubCommentData
+    subCommentId: string
   ) => {
     await UserDB.getById(userId);
     const existingFeed = await FeedDB.getById(feedId);
     const existingComment = await CommentDB.getById(commentId);
-    const existingSubComment = await SubCommentDB.getById(subCommentData._id);
+    const existingSubComment = await SubCommentDB.getById(subCommentId);
     SubCommentDB.verifyWriter(existingSubComment.writer._id.toString(), userId);
 
     const session = await mongoose.startSession();
@@ -84,12 +83,12 @@ class SubCommentService {
       );
 
       existingFeed.subComments = existingFeed.subComments.filter(
-        (data) => data._id.toString() !== subCommentData._id
+        (data) => data._id.toString() !== subCommentId
       );
       await existingFeed.save({ session });
 
       existingComment.subComments = existingComment.subComments.filter(
-        (data) => data._id.toString() !== subCommentData._id
+        (data) => data._id.toString() !== subCommentId
       );
       await existingComment.save({ session });
 
@@ -107,13 +106,14 @@ class SubCommentService {
     feedId: string,
     commentId: string,
     userId: string,
+    subCommentId: string,
     subCommentData: UpdateSubCommentData
   ) => {
     await UserDB.getById(userId);
     await FeedDB.getById(feedId);
     await CommentDB.getById(commentId);
 
-    const existingSubComment = await SubCommentDB.getById(subCommentData._id);
+    const existingSubComment = await SubCommentDB.getById(subCommentId);
     SubCommentDB.verifyWriter(existingSubComment.writer._id.toString(), userId);
 
     try {
