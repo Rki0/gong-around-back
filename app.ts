@@ -9,6 +9,8 @@ import cookieParser from "cookie-parser";
 import fs from "fs";
 import https from "https";
 
+import { swaggerUi, spec } from "./swagger/swagger";
+
 import AuthRouter from "./routes/authRouter";
 import FeedRouter from "./routes/feedRouter";
 import CommentRouter from "./routes/commentRouter";
@@ -60,3 +62,8 @@ app.use("/api/comment", CommentRouter);
 app.use("/api/subcomment", SubCommentRouter);
 app.use("/api/user", UserRouter);
 app.use("/api/location", LocationRouter);
+app.use(
+  "/api-docs",
+  swaggerUi.serve,
+  swaggerUi.setup(spec, { explorer: true })
+);
