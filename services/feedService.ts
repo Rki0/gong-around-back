@@ -188,11 +188,11 @@ class FeedService {
       await S3Module.deleteMany(s3, images);
 
       await session.abortTransaction();
-      await session.endSession();
-      throw new Error("게시물 생성 세션 실패");
-    }
 
-    await session.endSession();
+      throw new Error("게시물 생성 세션 실패");
+    } finally {
+      await session.endSession();
+    }
 
     // TODO: update top 10 liked, 10 viewed feeds which around each airport in redis
   };
@@ -239,11 +239,11 @@ class FeedService {
       await redisClient.disconnect();
 
       await session.commitTransaction();
-      await session.endSession();
     } catch (err) {
       session.abortTransaction();
-      session.endSession();
       throw new Error("게시물 삭제 세션 실패");
+    } finally {
+      session.endSession();
     }
   };
 
@@ -376,11 +376,10 @@ class FeedService {
       await session.commitTransaction();
     } catch (err) {
       await session.abortTransaction();
-      await session.endSession();
       throw new Error("좋아요 처리 실패");
+    } finally {
+      await session.endSession();
     }
-
-    await session.endSession();
   };
 
   dislikeFeed = async (feedId: string, userId: string) => {
@@ -415,11 +414,10 @@ class FeedService {
       await session.commitTransaction();
     } catch (err) {
       await session.abortTransaction();
-      await session.endSession();
       throw new Error("좋아요 삭제 처리 실패");
+    } finally {
+      await session.endSession();
     }
-
-    await session.endSession();
   };
 }
 

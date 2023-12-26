@@ -46,11 +46,10 @@ class UserService {
     } catch (err) {
       console.log(err);
       await session.abortTransaction();
-      await session.endSession();
       throw new Error("회원 탈퇴 세션 실패");
+    } finally {
+      await session.endSession();
     }
-
-    await session.endSession();
   };
 
   likedFeeds = async (userId: string, page: number) => {

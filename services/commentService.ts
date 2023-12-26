@@ -39,11 +39,10 @@ class CommentService {
     } catch (err) {
       console.log(err);
       await session.abortTransaction();
-      await session.endSession();
       throw new Error("댓글 등록 세션 실패");
+    } finally {
+      await session.endSession();
     }
-
-    await session.endSession();
   };
 
   deleteComment = async (feedId: string, commentId: string, userId: string) => {
@@ -74,11 +73,10 @@ class CommentService {
     } catch (err) {
       console.log(err);
       await session.abortTransaction();
-      await session.endSession();
       throw new Error("댓글 삭제 세션 실패");
+    } finally {
+      await session.endSession();
     }
-
-    await session.endSession();
   };
 
   updateComment = async (

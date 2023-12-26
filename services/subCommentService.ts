@@ -54,11 +54,10 @@ class SubCommentService {
     } catch (err) {
       console.log(err);
       await session.abortTransaction();
-      await session.endSession();
       throw new Error("답글 등록 세션 실패");
+    } finally {
+      await session.endSession();
     }
-
-    await session.endSession();
   };
 
   deleteSubComment = async (
@@ -98,11 +97,10 @@ class SubCommentService {
     } catch (err) {
       console.log(err);
       await session.abortTransaction();
-      await session.endSession();
       throw new Error("답글 삭제 세션 실패");
+    } finally {
+      await session.endSession();
     }
-
-    await session.endSession();
   };
 
   updateSubComment = async (

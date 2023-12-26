@@ -72,9 +72,9 @@ class AuthService {
       });
     } catch (err) {
       throw new Error("리프레쉬 토큰 캐싱 실패");
+    } finally {
+      await redisClient.disconnect();
     }
-
-    await redisClient.disconnect();
 
     return {
       userId: existingUser.id,
