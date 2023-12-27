@@ -88,17 +88,14 @@ class AuthService {
       // verify refresh token
       JwtModule.verifyToken(refreshToken);
     } catch (err) {
-      // FIXME: throw new Error는 catch 맨 아래로 옮겨서 공통으로 발생하도록 할 것. To block invoking code outside of catch statement.
-      if (err.message !== "jwt expired") {
-        throw new Error(err.message);
-      }
-
       // case : refresh token expired
       const redisClient = await connectRedis();
 
       await redisClient.del(decodedAccessToken.userId);
 
       await redisClient.disconnect();
+
+      throw new CustomError(401, err.message);
     }
 
     // case : refresh token not expired
