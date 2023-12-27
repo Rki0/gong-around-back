@@ -10,6 +10,7 @@ import Image from "../models/Image";
 import BcryptModule from "../common/bcryptModule";
 import S3Module from "../common/s3Module";
 import CustomError from "../errors/customError";
+import connectRedis from "../utils/redis";
 
 import { UpdatedUserInfo } from "../types/user";
 
@@ -27,6 +28,16 @@ class UserService {
       const images = await Image.find({ writer: existingUser._id });
 
       await S3Module.deleteMany(s3, images);
+
+      const feeds = await Feed.find({ writer: userId }, "_id");
+
+      const redisClient = await connectRedis();
+
+      await Promise.all(
+        feeds.map(async (feed) => await redisClient.del(feed.toString()))
+      );
+
+      await redisClient.disconnect();
 
       session.startTransaction();
 
