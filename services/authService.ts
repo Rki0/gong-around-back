@@ -73,11 +73,7 @@ class AuthService {
   logOut = async (userId: string) => {
     const redisClient = await connectRedis();
 
-    const isRefreshTokenExist = await redisClient.get(userId);
-
-    if (isRefreshTokenExist) {
-      await redisClient.del(userId);
-    }
+    await redisClient.del(userId);
 
     await redisClient.disconnect();
   };
@@ -92,6 +88,7 @@ class AuthService {
       // verify refresh token
       JwtModule.verifyToken(refreshToken);
     } catch (err) {
+      // FIXME: throw new Error는 catch 맨 아래로 옮겨서 공통으로 발생하도록 할 것. To block invoking code outside of catch statement.
       if (err.message !== "jwt expired") {
         throw new Error(err.message);
       }
@@ -99,25 +96,7 @@ class AuthService {
       // case : refresh token expired
       const redisClient = await connectRedis();
 
-      let isRefreshTokenExist;
-
-      try {
-        isRefreshTokenExist = await redisClient.get(decodedAccessToken.userId);
-      } catch (err) {
-        console.log(err);
-        throw new Error("리프레쉬 토큰 검색 실패");
-      }
-
-      if (!isRefreshTokenExist) {
-        await redisClient.disconnect();
-        throw new Error("리프레쉬 토큰 없음.");
-      }
-
-      try {
-        await redisClient.del(decodedAccessToken.userId);
-      } catch (err) {
-        throw new Error("리프레쉬 토큰 삭제 실패");
-      }
+      await redisClient.del(decodedAccessToken.userId);
 
       await redisClient.disconnect();
     }
@@ -142,14 +121,10 @@ class AuthService {
     // cache the refresh token to Redis
     const redisClient = await connectRedis();
 
-    try {
-      // cache time : same with refresh token's expired time : 14d
-      await redisClient.set(decodedAccessToken.userId, newRefreshToken, {
-        EX: 60 * 60 * 24 * 14,
-      });
-    } catch (err) {
-      throw new Error("리프레쉬 토큰 캐싱 실패");
-    }
+    // cache time : same with refresh token's expired time : 14d
+    await redisClient.set(decodedAccessToken.userId, newRefreshToken, {
+      EX: 60 * 60 * 24 * 14,
+    });
 
     await redisClient.disconnect();
 

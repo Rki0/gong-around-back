@@ -197,8 +197,9 @@ class FeedService {
       await Image.deleteMany({ feed: feedId }).session(session);
       await Feed.findByIdAndDelete(feedId).session(session);
 
-      await redisClient.del(feedId);
-      await redisClient.hDel("viewCounts", feedId);
+      // reference: how to implement transaction in redis
+      // https://koalatea.io/nodejs-redis-transactions/
+      await redisClient.multi().del(feedId).hDel("viewCounts", feedId).exec();
 
       await session.commitTransaction();
     } catch (err) {
@@ -267,12 +268,14 @@ class FeedService {
 
     // reference : how to use "zAdd"
     // https://stackoverflow.com/questions/70122516/redis-add-to-sorted-set-using-typescript
-    await redisClient.zAdd(feedId, {
-      score: expirationTime,
-      value: clientIP,
-    });
-
-    await redisClient.hIncrBy("viewCounts", feedId, 1);
+    await redisClient
+      .multi()
+      .zAdd(feedId, {
+        score: expirationTime,
+        value: clientIP,
+      })
+      .hIncrBy("viewCounts", feedId, 1)
+      .exec();
 
     await redisClient.disconnect();
 
