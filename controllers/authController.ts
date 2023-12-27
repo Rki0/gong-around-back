@@ -12,12 +12,7 @@ class AuthController {
   signUp = async (req: Request, res: Response) => {
     const inputtedUserInfo = req.body;
 
-    try {
-      await this.authService.signUp(inputtedUserInfo);
-    } catch (err) {
-      console.log(err);
-      return res.status(500).json({ message: err.message });
-    }
+    await this.authService.signUp(inputtedUserInfo);
 
     return res
       .status(201)
@@ -27,39 +22,30 @@ class AuthController {
   logIn = async (req: Request, res: Response) => {
     const inputtedUserInfo = req.body;
 
-    try {
-      const { accessToken, refreshToken, userId, nickname } =
-        await this.authService.logIn(inputtedUserInfo);
+    const { accessToken, refreshToken, userId, nickname } =
+      await this.authService.logIn(inputtedUserInfo);
 
-      res.cookie("refresh_token", refreshToken, {
-        path: "/",
-        httpOnly: true,
-        maxAge: 60 * 60 * 24 * 14,
-        secure: true,
-        sameSite: "none",
-      });
+    res.cookie("refresh_token", refreshToken, {
+      path: "/",
+      httpOnly: true,
+      maxAge: 60 * 60 * 24 * 14,
+      secure: true,
+      sameSite: "none",
+    });
 
-      return res
-        .status(201)
-        .json({ access_token: accessToken, userId, nickname });
-    } catch (err) {
-      console.log(err);
-      return res.status(500).json({ message: err.message });
-    }
+    return res
+      .status(201)
+      .json({ access_token: accessToken, userId, nickname });
   };
 
   logOut = async (req: Request, res: Response) => {
     const userId = req.userId as string;
 
-    try {
-      await this.authService.logOut(userId);
+    await this.authService.logOut(userId);
 
-      res.cookie("refresh_token", null);
+    res.cookie("refresh_token", null);
 
-      return res.status(204).json();
-    } catch (err) {
-      return res.status(500).json({ message: err.message });
-    }
+    return res.status(204).json();
   };
 
   reSignAccessToken = async (req: Request, res: Response) => {

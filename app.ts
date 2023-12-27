@@ -8,6 +8,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import fs from "fs";
 import https from "https";
+import "express-async-errors";
 
 import { swaggerUi, spec } from "./swagger/swagger";
 
@@ -19,6 +20,8 @@ import UserRouter from "./routes/userRouter";
 import LocationRouter from "./routes/locationRouter";
 
 import viewCountScheduler from "./schedulers/viewCountScheduler";
+
+import errorMiddleware from "./middlewares/errorMiddleware";
 
 dotenv.config();
 const app = express();
@@ -67,3 +70,4 @@ app.use(
   swaggerUi.serve,
   swaggerUi.setup(spec, { explorer: true })
 );
+app.use(errorMiddleware);

@@ -9,6 +9,7 @@ import FeedDB from "../common/feedDB";
 import SubComment from "../models/SubComment";
 import Comment from "../models/Comment";
 import S3Module from "../common/s3Module";
+import CustomError from "../errors/customError";
 
 import { Feed as FeedData } from "../types/feed";
 
@@ -19,22 +20,17 @@ class FeedService {
 
     let numberOfFeeds;
 
-    try {
-      if (!keyword) {
-        // reference
-        // https://mongoosejs.com/docs/api/model.html#Model.estimatedDocumentCount()
-        numberOfFeeds = await Feed.estimatedDocumentCount();
-      } else {
-        // reference
-        // https://stackoverflow.com/questions/65160433/mongodb-mongoose-whats-the-best-way-to-count-a-lot-of-documents-with-a-filter
-        // https://stackoverflow.com/questions/73833749/in-mongodb-how-do-we-apply-filter-criteria-on-a-subdocument
-        numberOfFeeds = await Feed.countDocuments({
-          title: { $regex: keyword, $options: "i" },
-        });
-      }
-    } catch (err) {
-      console.log(err);
-      throw new Error("게시물 개수 파악 실패");
+    if (!keyword) {
+      // reference
+      // https://mongoosejs.com/docs/api/model.html#Model.estimatedDocumentCount()
+      numberOfFeeds = await Feed.estimatedDocumentCount();
+    } else {
+      // reference
+      // https://stackoverflow.com/questions/65160433/mongodb-mongoose-whats-the-best-way-to-count-a-lot-of-documents-with-a-filter
+      // https://stackoverflow.com/questions/73833749/in-mongodb-how-do-we-apply-filter-criteria-on-a-subdocument
+      numberOfFeeds = await Feed.countDocuments({
+        title: { $regex: keyword, $options: "i" },
+      });
     }
 
     const totalPageNum = Math.ceil(numberOfFeeds / FEEDS_PER_PAGE);
@@ -52,48 +48,43 @@ class FeedService {
     // https://www.mongodb.com/docs/v7.0/reference/operator/aggregation/project/
     // https://www.mongodb.com/docs/manual/reference/operator/query/regex/
     // https://www.mongodb.com/docs/v7.0/reference/operator/aggregation/match/
-    try {
-      if (!keyword) {
-        currentPageFeeds = await Feed.aggregate([
-          {
-            $project: {
-              title: true,
-              description: true,
-              createdAt: true,
-              like: true,
-              view: true,
-              commentsCount: { $size: "$comments" },
-              subCommentsCount: { $size: "$subComments" },
-            },
+    if (!keyword) {
+      currentPageFeeds = await Feed.aggregate([
+        {
+          $project: {
+            title: true,
+            description: true,
+            createdAt: true,
+            like: true,
+            view: true,
+            commentsCount: { $size: "$comments" },
+            subCommentsCount: { $size: "$subComments" },
           },
-        ])
-          .skip((page - 1) * FEEDS_PER_PAGE) // skip data which aren't related with current page
-          .limit(FEEDS_PER_PAGE); // control number of the data
-      } else {
-        currentPageFeeds = await Feed.aggregate([
-          {
-            $match: {
-              title: { $regex: keyword, $options: "i" },
-            },
+        },
+      ])
+        .skip((page - 1) * FEEDS_PER_PAGE) // skip data which aren't related with current page
+        .limit(FEEDS_PER_PAGE); // control number of the data
+    } else {
+      currentPageFeeds = await Feed.aggregate([
+        {
+          $match: {
+            title: { $regex: keyword, $options: "i" },
           },
-          {
-            $project: {
-              title: true,
-              description: true,
-              createdAt: true,
-              like: true,
-              view: true,
-              commentsCount: { $size: "$comments" },
-              subCommentsCount: { $size: "$subComments" },
-            },
+        },
+        {
+          $project: {
+            title: true,
+            description: true,
+            createdAt: true,
+            like: true,
+            view: true,
+            commentsCount: { $size: "$comments" },
+            subCommentsCount: { $size: "$subComments" },
           },
-        ])
-          .skip((page - 1) * FEEDS_PER_PAGE)
-          .limit(FEEDS_PER_PAGE);
-      }
-    } catch (err) {
-      console.log(err);
-      throw new Error("게시물 추출 실패");
+        },
+      ])
+        .skip((page - 1) * FEEDS_PER_PAGE)
+        .limit(FEEDS_PER_PAGE);
     }
 
     const hasMore = totalPageNum !== page;
@@ -174,7 +165,7 @@ class FeedService {
 
       await session.abortTransaction();
 
-      throw new Error("게시물 생성 세션 실패");
+      throw new CustomError(500, "게시물 생성 세션 실패");
     } finally {
       await session.endSession();
     }
@@ -186,6 +177,7 @@ class FeedService {
     const existingUser = await UserDB.getById(userId);
 
     const session = await mongoose.startSession();
+    const redisClient = await connectRedis();
 
     try {
       session.startTransaction();
@@ -205,96 +197,62 @@ class FeedService {
       await Image.deleteMany({ feed: feedId }).session(session);
       await Feed.findByIdAndDelete(feedId).session(session);
 
-      const redisClient = await connectRedis();
-
-      try {
-        await redisClient.del(feedId);
-      } catch (err) {
-        await redisClient.disconnect();
-        throw new Error("조회수 어뷰징 차단용 IP 캐싱 제거 실패");
-      }
-
-      try {
-        await redisClient.hDel("viewCounts", feedId);
-      } catch (err) {
-        await redisClient.disconnect();
-        throw new Error("조회수 캐싱 제거 실패");
-      }
-
-      await redisClient.disconnect();
+      await redisClient.del(feedId);
+      await redisClient.hDel("viewCounts", feedId);
 
       await session.commitTransaction();
     } catch (err) {
       session.abortTransaction();
-      throw new Error("게시물 삭제 세션 실패");
+      throw new CustomError(500, "게시물 삭제 세션 실패");
     } finally {
-      session.endSession();
+      await redisClient.disconnect();
+      await session.endSession();
     }
   };
 
   detailFeed = async (feedId: string, clientIP: string) => {
-    let feed;
-
-    // FIXME: 빈 배열인 경우 populate를 걸면 에러가 뜨는 듯함(comments, subComments)
-    try {
-      // reference : how to select specific field with populate
-      // https://mongoosejs.com/docs/populate.html#field-selection
-      // https://mongoosejs.com/docs/populate.html#populating-multiple-paths
-      feed = await Feed.findById(feedId)
-        .populate("location", "address lat lng")
-        .populate("writer", "_id nickname")
-        .populate("images", "path")
-        .populate({
-          path: "comments",
-          select: "-feed",
-          options: {
-            // reference : how to sort data
-            // https://mongoosejs.com/docs/api/query.html#Query.prototype.sort()
-            sort: { createdAt: "descending" },
-          },
-          // reference : how to populate multiple depths document
-          // https://mongoosejs.com/docs/populate.html#deep-populate
-          // https://stackoverflow.com/questions/51724786/how-to-populate-in-3-collection-in-mongodb-with-mongoose
-          populate: [
-            { path: "writer", select: "_id nickname" },
-            {
-              path: "subComments",
-              select: "-feed",
-              options: {
-                sort: { createdAt: "descending" },
-              },
-              populate: { path: "writer", select: "_id nickname" },
+    // reference : how to select specific field with populate
+    // https://mongoosejs.com/docs/populate.html#field-selection
+    // https://mongoosejs.com/docs/populate.html#populating-multiple-paths
+    const feed = await Feed.findById(feedId)
+      .populate("location", "address lat lng")
+      .populate("writer", "_id nickname")
+      .populate("images", "path")
+      .populate({
+        path: "comments",
+        select: "-feed",
+        options: {
+          // reference : how to sort data
+          // https://mongoosejs.com/docs/api/query.html#Query.prototype.sort()
+          sort: { createdAt: "descending" },
+        },
+        // reference : how to populate multiple depths document
+        // https://mongoosejs.com/docs/populate.html#deep-populate
+        // https://stackoverflow.com/questions/51724786/how-to-populate-in-3-collection-in-mongodb-with-mongoose
+        populate: [
+          { path: "writer", select: "_id nickname" },
+          {
+            path: "subComments",
+            select: "-feed",
+            options: {
+              sort: { createdAt: "descending" },
             },
-          ],
-        });
-    } catch (err) {
-      console.log(err);
-      throw new Error("게시물 탐색 실패");
-    }
+            populate: { path: "writer", select: "_id nickname" },
+          },
+        ],
+      });
 
     // reference : how to implement increment of view count
     // https://dont-think-about-too-much.github.io/2021/06/28/0writeback/
     // https://velog.io/@bagt/Spring-Scheduler%EB%A1%9C-%EC%A1%B0%ED%9A%8C%EC%88%98-%EB%A1%9C%EC%A7%81-%EC%BA%90%EC%8B%B1-%EA%B5%AC%ED%98%84%ED%95%98%EA%B8%B0
     const redisClient = await connectRedis();
 
-    try {
-      // expire condition : Date.now() of req >= (Date.now() when caching data + 24hour)
-      await redisClient.zRemRangeByScore(feedId, -Infinity, Date.now());
-    } catch (err) {
-      await redisClient.disconnect();
-      throw new Error("조회수 어뷰징 차단용 IP 캐싱 만료 처리 실패");
-    }
+    // expire condition : Date.now() of req >= (Date.now() when caching data + 24hour)
+    await redisClient.zRemRangeByScore(feedId, -Infinity, Date.now());
 
-    let isAbusingCached: boolean;
-
-    try {
-      isAbusingCached = (await redisClient.zScan(feedId, 0)).members.some(
-        (member) => member.value === clientIP
-      );
-    } catch (err) {
-      await redisClient.disconnect();
-      throw new Error("조회수 어뷰징 차단용 IP 캐싱 탐색 실패");
-    }
+    const isAbusingCached = (await redisClient.zScan(feedId, 0)).members.some(
+      (member) => member.value === clientIP
+    );
 
     if (isAbusingCached) {
       await redisClient.disconnect();
@@ -307,24 +265,14 @@ class FeedService {
     // https://groups.google.com/g/redis-db/c/-GSVYNoPfYI
     const expirationTime = Date.now() + 24 * 60 * 60 * 1000; // 24 hour
 
-    try {
-      // reference : how to use "zAdd"
-      // https://stackoverflow.com/questions/70122516/redis-add-to-sorted-set-using-typescript
-      await redisClient.zAdd(feedId, {
-        score: expirationTime,
-        value: clientIP,
-      });
-    } catch (err) {
-      await redisClient.disconnect();
-      throw new Error("조회수 어뷰징 차단용 IP 캐싱 실패");
-    }
+    // reference : how to use "zAdd"
+    // https://stackoverflow.com/questions/70122516/redis-add-to-sorted-set-using-typescript
+    await redisClient.zAdd(feedId, {
+      score: expirationTime,
+      value: clientIP,
+    });
 
-    try {
-      await redisClient.hIncrBy("viewCounts", feedId, 1);
-    } catch (err) {
-      await redisClient.disconnect();
-      throw new Error("조회수 캐싱 실패");
-    }
+    await redisClient.hIncrBy("viewCounts", feedId, 1);
 
     await redisClient.disconnect();
 
@@ -337,14 +285,12 @@ class FeedService {
     ).populate("likedFeeds");
     const existingFeed = await FeedDB.getById(feedId);
 
-    let alreadyLiked = false;
-
-    alreadyLiked = existingUser.likedFeeds.some(
+    const alreadyLiked = existingUser.likedFeeds.some(
       (likedFeedId) => likedFeedId.toString() === feedId
     );
 
     if (alreadyLiked) {
-      throw new Error("이미 좋아요를 누른 게시물입니다.");
+      throw new CustomError(400, "이미 좋아요를 누른 게시물입니다.");
     }
 
     const session = await mongoose.startSession();
@@ -361,7 +307,7 @@ class FeedService {
       await session.commitTransaction();
     } catch (err) {
       await session.abortTransaction();
-      throw new Error("좋아요 처리 실패");
+      throw new CustomError(500, "좋아요 처리 실패");
     } finally {
       await session.endSession();
     }
@@ -373,14 +319,12 @@ class FeedService {
     ).populate("likedFeeds");
     const existingFeed = await FeedDB.getById(feedId);
 
-    let alreadyLiked = false;
-
-    alreadyLiked = existingUser.likedFeeds.some(
+    const alreadyLiked = existingUser.likedFeeds.some(
       (likedFeedId) => likedFeedId.toString() === feedId
     );
 
     if (!alreadyLiked) {
-      throw new Error("좋아요를 누른 적 없는 게시물입니다.");
+      throw new CustomError(400, "좋아요를 누른 적 없는 게시물입니다.");
     }
 
     const session = await mongoose.startSession();
@@ -399,7 +343,7 @@ class FeedService {
       await session.commitTransaction();
     } catch (err) {
       await session.abortTransaction();
-      throw new Error("좋아요 삭제 처리 실패");
+      throw new CustomError(500, "좋아요 삭제 처리 실패");
     } finally {
       await session.endSession();
     }

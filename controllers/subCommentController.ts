@@ -15,19 +15,14 @@ class SubCommentController {
     const userId = req.userId as string;
     const subCommentData = req.body;
 
-    try {
-      await this.subCommentService.createSubComment(
-        feedId,
-        commentId,
-        userId,
-        subCommentData
-      );
+    await this.subCommentService.createSubComment(
+      feedId,
+      commentId,
+      userId,
+      subCommentData
+    );
 
-      return res.status(201).json({ message: "답글 등록 성공" });
-    } catch (err) {
-      console.log(err);
-      return res.status(500).json({ message: err.message });
-    }
+    return res.status(201).json({ message: "답글 등록 성공" });
   };
 
   deleteSubComment = async (req: Request, res: Response) => {
@@ -36,19 +31,14 @@ class SubCommentController {
     const subCommentId = req.params.subCommentId;
     const userId = req.userId as string;
 
-    try {
-      await this.subCommentService.deleteSubComment(
-        feedId,
-        commentId,
-        userId,
-        subCommentId
-      );
+    await this.subCommentService.deleteSubComment(
+      feedId,
+      commentId,
+      userId,
+      subCommentId
+    );
 
-      return res.status(201).json({ message: "답글 삭제 성공" });
-    } catch (err) {
-      console.log(err);
-      return res.status(500).json({ message: err.message });
-    }
+    return res.status(204).json();
   };
 
   updateSubComment = async (req: Request, res: Response) => {
@@ -58,20 +48,15 @@ class SubCommentController {
     const userId = req.userId as string;
     const subCommentData = req.body;
 
-    try {
-      await this.subCommentService.updateSubComment(
-        feedId,
-        commentId,
-        userId,
-        subCommentId,
-        subCommentData
-      );
+    await this.subCommentService.updateSubComment(
+      feedId,
+      commentId,
+      userId,
+      subCommentId,
+      subCommentData
+    );
 
-      return res.status(201).json({ message: "답글 수정 성공" });
-    } catch (err) {
-      console.log(err);
-      return res.status(500).json({ message: err.message });
-    }
+    return res.status(201).json({ message: "답글 수정 성공" });
   };
 }
 

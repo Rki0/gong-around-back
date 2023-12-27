@@ -5,6 +5,7 @@ import SubComment from "../models/SubComment";
 import UserDB from "../common/userDB";
 import FeedDB from "../common/feedDB";
 import CommentDB from "../common/commentDB";
+import CustomError from "../errors/customError";
 
 import { Comment as CommentData } from "../types/comment";
 
@@ -35,9 +36,8 @@ class CommentService {
 
       await session.commitTransaction();
     } catch (err) {
-      console.log(err);
       await session.abortTransaction();
-      throw new Error("댓글 등록 세션 실패");
+      throw new CustomError(500, "댓글 등록 세션 실패");
     } finally {
       await session.endSession();
     }
@@ -54,12 +54,14 @@ class CommentService {
     try {
       session.startTransaction();
 
+      // FIXME: SubComment의 parentComment가 commentId인 것들을 deleteMany로 처리하도록 하자.
       await Promise.all(
         existingComment.subComments.map(
           async (_id) => await SubComment.deleteOne({ _id }).session(session)
         )
       );
 
+      // SUGGEST: existingComment._id 대신 commentId를 사용
       await Comment.findByIdAndDelete(existingComment._id).session(session);
 
       existingFeed.comments = existingFeed.comments.filter(
@@ -69,9 +71,8 @@ class CommentService {
 
       await session.commitTransaction();
     } catch (err) {
-      console.log(err);
       await session.abortTransaction();
-      throw new Error("댓글 삭제 세션 실패");
+      throw new CustomError(500, "댓글 삭제 세션 실패");
     } finally {
       await session.endSession();
     }
@@ -88,13 +89,9 @@ class CommentService {
     const existingComment = await CommentDB.getById(commentId);
     CommentDB.verifyWriter(existingComment.writer._id.toString(), userId);
 
-    try {
-      await Comment.findByIdAndUpdate(existingComment._id, {
-        description: commentData.description,
-      });
-    } catch (err) {
-      throw new Error("댓글 수정 실패");
-    }
+    await Comment.findByIdAndUpdate(existingComment._id, {
+      description: commentData.description,
+    });
   };
 }
 

@@ -1,6 +1,6 @@
 import jwt, { JwtPayload } from "jsonwebtoken";
 
-// TODO: dotenv 불러와야할지도?
+import CustomError from "../errors/customError";
 
 interface JwtCustomPayload extends JwtPayload {
   userId: string;
@@ -20,7 +20,7 @@ class JwtModule {
     const decodedToken = jwt.decode(token) as JwtCustomPayload;
 
     if (!decodedToken) {
-      throw new Error("Decoding Token failed");
+      throw new CustomError(403, "Invalid decoded token.");
     }
 
     return decodedToken;

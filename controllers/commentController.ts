@@ -14,14 +14,9 @@ class CommentController {
     const userId = req.userId as string;
     const commentData = req.body;
 
-    try {
-      await this.commentService.createComment(feedId, userId, commentData);
+    await this.commentService.createComment(feedId, userId, commentData);
 
-      return res.status(201).json({ message: "댓글 등록 성공" });
-    } catch (err) {
-      console.log(err);
-      return res.status(500).json({ message: err.message });
-    }
+    return res.status(201).json({ message: "댓글 등록 성공" });
   };
 
   deleteComment = async (req: Request, res: Response) => {
@@ -29,14 +24,9 @@ class CommentController {
     const commentId = req.params.commentId;
     const userId = req.userId as string;
 
-    try {
-      await this.commentService.deleteComment(feedId, commentId, userId);
+    await this.commentService.deleteComment(feedId, commentId, userId);
 
-      return res.status(201).json({ message: "댓글 삭제 성공" });
-    } catch (err) {
-      console.log(err);
-      return res.status(500).json({ message: err.message });
-    }
+    return res.status(204).json();
   };
 
   updateComment = async (req: Request, res: Response) => {
@@ -45,19 +35,14 @@ class CommentController {
     const userId = req.userId as string;
     const commentData = req.body;
 
-    try {
-      await this.commentService.updateComment(
-        feedId,
-        commentId,
-        userId,
-        commentData
-      );
+    await this.commentService.updateComment(
+      feedId,
+      commentId,
+      userId,
+      commentData
+    );
 
-      return res.status(201).json({ message: "댓글 수정 성공" });
-    } catch (err) {
-      console.log(err);
-      return res.status(500).json({ message: err.message });
-    }
+    return res.status(201).json({ message: "댓글 수정 성공" });
   };
 }
 

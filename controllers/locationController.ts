@@ -15,15 +15,11 @@ class LocationController {
       lng: parseFloat(req.query.lng as string),
     };
 
-    try {
-      const calculatedLocation = await this.locationService.getAroundLocation(
-        location
-      );
+    const calculatedLocation = await this.locationService.getAroundLocation(
+      location
+    );
 
-      return res.status(200).json({ markers: calculatedLocation });
-    } catch (err) {
-      return res.status(500).json({ message: err.message });
-    }
+    return res.status(200).json({ markers: calculatedLocation });
   };
 }
 
