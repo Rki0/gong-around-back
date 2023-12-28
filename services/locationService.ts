@@ -25,7 +25,7 @@ class LocationService {
     })
       .populate({
         path: "feed",
-        select: "-location -writer -comments -subComments",
+        select: "-location -writer -comments -subComments -description",
         populate: {
           path: "images",
           select: "path",
