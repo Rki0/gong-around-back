@@ -61,6 +61,13 @@ class FeedService {
             subCommentsCount: { $size: "$subComments" },
           },
         },
+        {
+          // reference: how to sort data in aggregate
+          // https://www.mongodb.com/docs/manual/reference/operator/aggregation/sort/
+          $sort: {
+            createdAt: -1,
+          },
+        },
       ])
         .skip((page - 1) * FEEDS_PER_PAGE) // skip data which aren't related with current page
         .limit(FEEDS_PER_PAGE); // control number of the data
