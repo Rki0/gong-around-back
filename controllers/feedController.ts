@@ -12,9 +12,10 @@ class FeedController {
 
   pagination = async (req: Request, res: Response) => {
     const page = parseInt(req.query.page as string, 10);
+    const sort = (req.query.sort as string) ?? "date";
     const keyword = req.query.keyword as string;
 
-    const pageData = await this.feedService.pagination(page, keyword);
+    const pageData = await this.feedService.pagination(page, sort, keyword);
 
     return res.status(200).json(pageData);
   };

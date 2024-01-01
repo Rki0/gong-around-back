@@ -14,9 +14,27 @@ import CustomError from "../errors/customError";
 import { Feed as FeedData } from "../types/feed";
 
 class FeedService {
-  pagination = async (page: number, keyword: string | undefined) => {
+  pagination = async (
+    page: number,
+    sort: string,
+    keyword: string | undefined
+  ) => {
     const FEEDS_PER_PAGE = 10;
     const PAGINATION_AT_ONCE = 10;
+
+    let sortOption: Record<string, 1 | -1> = {
+      createdAt: -1, // newest
+    };
+
+    if (sort === "like") {
+      sortOption = {
+        like: -1, // like
+      };
+    } else if (sort === "view") {
+      sortOption = {
+        view: -1, // view
+      };
+    }
 
     let numberOfFeeds;
 
@@ -64,9 +82,7 @@ class FeedService {
         {
           // reference: how to sort data in aggregate
           // https://www.mongodb.com/docs/manual/reference/operator/aggregation/sort/
-          $sort: {
-            createdAt: -1,
-          },
+          $sort: sortOption,
         },
       ])
         .skip((page - 1) * FEEDS_PER_PAGE) // skip data which aren't related with current page
@@ -88,6 +104,9 @@ class FeedService {
             commentsCount: { $size: "$comments" },
             subCommentsCount: { $size: "$subComments" },
           },
+        },
+        {
+          $sort: sortOption,
         },
       ])
         .skip((page - 1) * FEEDS_PER_PAGE)
