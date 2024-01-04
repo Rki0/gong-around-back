@@ -8,6 +8,7 @@ interface User {
   email: string;
   password: string;
   likedFeeds: Types.ObjectId[];
+  likedComments: Types.ObjectId[];
 }
 
 const userSchema = new Schema<User>(
@@ -32,6 +33,13 @@ const userSchema = new Schema<User>(
         type: Schema.Types.ObjectId,
         required: true,
         ref: "Feed",
+      },
+    ],
+    likedComments: [
+      {
+        type: Schema.Types.ObjectId,
+        required: true,
+        ref: "Comment",
       },
     ],
   },

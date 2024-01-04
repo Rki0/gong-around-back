@@ -44,6 +44,16 @@ class CommentController {
 
     return res.status(201).json({ message: "댓글 수정 성공" });
   };
+
+  likeComment = async (req: Request, res: Response) => {
+    const feedId = req.params.feedId;
+    const commentId = req.params.commentId;
+    const userId = req.userId as string;
+
+    await this.commentService.likeComment(feedId, commentId, userId);
+
+    return res.status(201).json({ message: "댓글 좋아요 성공" });
+  };
 }
 
 export default CommentController;

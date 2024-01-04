@@ -144,4 +144,44 @@ router.delete("/:feedId/:commentId", commentController.deleteComment);
  */
 router.patch("/:feedId/:commentId", commentController.updateComment);
 
+/**
+ * @swagger
+ * paths:
+ *  /api/comment/like/{feedId}/{commentId}:
+ *   post:
+ *    tags:
+ *    - comment
+ *    summary: Increase like number of comment
+ *    description: Increase like number of comment about specific feed.
+ *    security:
+ *      - bearerAuth: []
+ *
+ *    parameters:
+ *      - in: path
+ *        name: feedId
+ *        required: true
+ *        schema:
+ *          type: string
+ *        description: feed's unique id
+ *      - in: path
+ *        name: commentId
+ *        required: true
+ *        schema:
+ *          type: string
+ *        description: comment's unique id
+ *
+ *    responses:
+ *     '201':
+ *      description: Comment's like successfully increase.
+ *      content:
+ *        application/json:
+ *          schema:
+ *            properties:
+ *              message:
+ *                type: string
+ *                example: 댓글 좋아요 성공
+ *
+ */
+router.post("/like/:feedId/:commentId", commentController.likeComment);
+
 export default router;
