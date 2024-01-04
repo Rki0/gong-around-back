@@ -98,7 +98,6 @@ class CommentService {
     const existingUser = await UserDB.getById(userId);
     await FeedDB.getById(feedId);
     const existingComment = await CommentDB.getById(commentId);
-    CommentDB.verifyWriter(existingComment.writer._id.toString(), userId);
 
     const alreadyLiked = existingUser.likedComments.some(
       (likedCommentId) => likedCommentId.toString() === commentId
