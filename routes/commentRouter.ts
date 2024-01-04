@@ -184,4 +184,44 @@ router.patch("/:feedId/:commentId", commentController.updateComment);
  */
 router.post("/like/:feedId/:commentId", commentController.likeComment);
 
+/**
+ * @swagger
+ * paths:
+ *  /api/comment/dislike/{feedId}/{commentId}:
+ *   post:
+ *    tags:
+ *    - comment
+ *    summary: Decrease like number of comment
+ *    description: Decrease like number of comment about specific feed.
+ *    security:
+ *      - bearerAuth: []
+ *
+ *    parameters:
+ *      - in: path
+ *        name: feedId
+ *        required: true
+ *        schema:
+ *          type: string
+ *        description: feed's unique id
+ *      - in: path
+ *        name: commentId
+ *        required: true
+ *        schema:
+ *          type: string
+ *        description: comment's unique id
+ *
+ *    responses:
+ *     '201':
+ *      description: Comment's like successfully decrease.
+ *      content:
+ *        application/json:
+ *          schema:
+ *            properties:
+ *              message:
+ *                type: string
+ *                example: 댓글 좋아요 취소 성공
+ *
+ */
+router.post("/dislike/:feedId/:commentId", commentController.dislikeComment);
+
 export default router;
